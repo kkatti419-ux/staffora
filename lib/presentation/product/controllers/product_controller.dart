@@ -4,11 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/core/utils/snackbar_service.dart';
 import 'package:staffora/data/models/api_models/product/posts_model.dart';
+import 'package:staffora/domain/usecases/create_product_usecase.dart';
 import '../../../data/models/api_models/product/product_model.dart';
 import '../../../data/repositories/product_repository.dart';
 
 class ProductController extends GetxController {
-  final repo = ProductRepository();
+  // final repo = ProductRepository();
+  final CreateProductUseCase createProductUseCase;
+
+  ProductController(this.createProductUseCase);
   var isLoading = false.obs;
   var posts = <PostsModel>[].obs;
   var fetchSuccess = false.obs; // NEW FLAG
@@ -27,9 +31,9 @@ class ProductController extends GetxController {
         description: description,
       );
 
-      final success = await repo.createProduct(product);
+      final result = await createProductUseCase.execute(product);
 
-      if (success) {
+      if (result.isSuccess) {
         SnackbarService.showSuccess(context, "Product created successfully");
         // ignore: use_build_context_synchronously
         if (context.mounted) {
@@ -47,23 +51,24 @@ class ProductController extends GetxController {
     }
   }
 
-  Future<bool> getProducts({required BuildContext context}) async {
-    try {
-      isLoading.value = true;
-      final results = await repo.getPosts(); // raw JSON List<dynamic>
-      if (results.isNotEmpty) {
-        // Store posts locally; leave navigation decisions to the UI layer
-        posts.assignAll(results);
-        fetchSuccess.value = true;
-        return true; // indicate success to caller
-      } else {
-        fetchSuccess.value = false;
-      }
-    } catch (e) {
-      fetchSuccess.value = false;
-    } finally {
-      isLoading.value = false;
-    }
-    return false;
-  }
+  // Future<bool> getProducts({required BuildContext context}) async {
+  //   try {
+  //     isLoading.value = true;
+  //     final results =
+  //         await createProductUseCase.getPosts(); // raw JSON List<dynamic>
+  //     if (results.isNotEmpty) {
+  //       // Store posts locally; leave navigation decisions to the UI layer
+  //       posts.assignAll(results);
+  //       fetchSuccess.value = true;
+  //       return true; // indicate success to caller
+  //     } else {
+  //       fetchSuccess.value = false;
+  //     }
+  //   } catch (e) {
+  //     fetchSuccess.value = false;
+  //   } finally {
+  //     isLoading.value = false;
+  //   }
+  //   return false;
+  // }
 }
