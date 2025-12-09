@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:staffora/presentation/auth/views/forgot_password.dart';
 import 'package:staffora/presentation/auth/views/login_screen.dart';
 import 'package:staffora/presentation/auth/views/register_screen.dart';
+import 'package:staffora/presentation/dashboard/views/dashboard_screen.dart';
 import 'package:staffora/presentation/product/views/create_product_view.dart';
 import 'package:staffora/presentation/profile/views/profile_view.dart';
 import 'package:staffora/presentation/users/views/getall_users_view.dart';
@@ -17,9 +18,7 @@ class AppRouter {
       ),
       GoRoute(
         path: "/auth/login",
-        builder: (context, state) => LoginScreen(
-          context: context,
-        ),
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: "/auth/forgot",
@@ -38,7 +37,7 @@ class AppRouter {
       ),
       GoRoute(
         path: "/profile/user",
-        builder: (context, state) => const ProfilePage(),
+        builder: (context, state) => const DashboardScreen(),
       ),
     ],
   );
