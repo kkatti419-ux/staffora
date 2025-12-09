@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 import '../controllers/product_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/theme_controller.dart';
@@ -19,7 +18,7 @@ class _CreateProductViewState extends State<CreateProductView> {
   @override
   void initState() {
     super.initState();
-    controller1 = Get.put(ProductController());
+    controller1 = Get.find<ProductController>(); // ✔ correct
     themeController = Get.find<ThemeController>();
   }
 
@@ -52,16 +51,7 @@ class _CreateProductViewState extends State<CreateProductView> {
           children: [
             Center(
               child: ElevatedButton(
-                onPressed: controller1.isLoading.value
-                    ? null
-                    : () async {
-                        // Call getProducts, then navigate to Users screen
-                        final success =
-                            await controller1.getProducts(context: context);
-                        if (success && context.mounted) {
-                          context.go("/users/allusers");
-                        }
-                      },
+                onPressed: () {},
                 child: Text(
                   "getProducts",
                   style: theme.textTheme.labelLarge,

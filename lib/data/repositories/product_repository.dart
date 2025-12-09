@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:staffora/data/models/api_models/product/posts_model.dart';
+import 'package:staffora/domain/repositories/i_product_repository.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/network/api_routes.dart';
 import '../models/api_models/product/product_model.dart';
 
-class ProductRepository {
+class ProductRepository implements IProductRepository {
   final ApiClient _client = ApiClient();
 
   Future<bool> createProduct(ProductModel product) async {
