@@ -1,0 +1,45 @@
+import 'package:go_router/go_router.dart';
+import 'package:staffora/presentation/auth/views/forgot_password.dart';
+import 'package:staffora/presentation/auth/views/login_screen.dart';
+import 'package:staffora/presentation/auth/views/register_screen.dart';
+import 'package:staffora/presentation/product/views/create_product_view.dart';
+import 'package:staffora/presentation/profile/views/profile_view.dart';
+import 'package:staffora/presentation/users/views/getall_users_view.dart';
+import '../../presentation/product/views/product_success_view.dart';
+
+class AppRouter {
+  static final router = GoRouter(
+    initialLocation: "/auth/login",
+    routes: [
+      GoRoute(
+        path: "/auth/register",
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: "/auth/login",
+        builder: (context, state) => LoginScreen(
+          context: context,
+        ),
+      ),
+      GoRoute(
+        path: "/auth/forgot",
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+          path: "/product/create",
+          builder: (context, state) => const CreateProductView()),
+      GoRoute(
+        path: "/product/success",
+        builder: (context, state) => const ProductSuccessView(),
+      ),
+      GoRoute(
+        path: "/users/allusers",
+        builder: (context, state) => GetAllUsersView(),
+      ),
+      GoRoute(
+        path: "/profile/user",
+        builder: (context, state) => const ProfilePage(),
+      ),
+    ],
+  );
+}

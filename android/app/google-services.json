@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "847688702354",
+    "project_id": "staffora-project-2025",
+    "storage_bucket": "staffora-project-2025.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:847688702354:android:4d8df0bfbf8653ffc1494b",
+        "android_client_info": {
+          "package_name": "com.example.staffora"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "847688702354-dj65pvbie52fh0qvi1k6001erfotfi4h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.staffora",
+            "certificate_hash": "82efafb1ecc363e7009a9e815e440a6ee07de2b6"
+          }
+        },
+        {
+          "client_id": "847688702354-ti5m5fejiuifu85bsnp446qkaivnguf2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8iKM0f6h2Tgivoc_97UUhBPhfnDXZHZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "847688702354-ti5m5fejiuifu85bsnp446qkaivnguf2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "847688702354-mehst1neu4465irbvglqt9mi9rs85au5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.staffora"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
