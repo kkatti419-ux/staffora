@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:staffora/presentation/leave/views/apply_leave.dart';
 
 class DashboardUI extends StatelessWidget {
   const DashboardUI({super.key});
@@ -32,7 +33,7 @@ class DashboardUI extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => const Text("Apply Leave Form"),
+                      builder: (context) => ApplyLeaveForm(),
                     ),
                   );
                 },
