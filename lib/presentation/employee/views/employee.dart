@@ -42,7 +42,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
         employeeId: null,
       ),
     );
-    // No need to manually update UI – StreamBuilder rebuilds automatically
+    // No need to manually update UI – StreamBuilder rebuilds automaticallyy
   }
 
   Future<void> _openEditDialog(EmployeeModelClass employee) async {
