@@ -6,12 +6,16 @@ class CustomDropdown extends StatelessWidget {
   final String hint;
   final Function(String?) onChanged;
 
+  /// NEW: Optional custom item builder
+  final Widget Function(BuildContext, String)? itemBuilder;
+
   const CustomDropdown({
     Key? key,
     required this.items,
     required this.value,
     required this.onChanged,
     this.hint = "Select",
+    this.itemBuilder,
   }) : super(key: key);
 
   @override
@@ -27,12 +31,16 @@ class CustomDropdown extends StatelessWidget {
         value: value,
         decoration: const InputDecoration(border: InputBorder.none),
         hint: Text(hint),
-        items: items
-            .map((e) => DropdownMenuItem(
-                  value: e,
-                  child: Text(e),
-                ))
-            .toList(),
+        items: items.map((item) {
+          return DropdownMenuItem(
+            value: item,
+
+            /// If itemBuilder is provided → use custom UI
+            child: itemBuilder != null
+                ? itemBuilder!(context, item)
+                : Text(item), // fallback default
+          );
+        }).toList(),
         onChanged: onChanged,
       ),
     );

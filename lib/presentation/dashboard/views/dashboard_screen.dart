@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:staffora/presentation/employee/views/employee.dart';
 import 'package:staffora/presentation/leave/views/leave_dashboard.dart';
+import 'package:staffora/presentation/leave_approval.dart';
 import 'package:staffora/presentation/profile/views/profile_view.dart';
 import 'package:staffora/presentation/sallary/views/sallary.dart';
 
@@ -29,6 +30,11 @@ class _DashboardPageState extends State<DashboardScreen> {
         return const SalaryPage(); // Salary
       case 3:
         return const DashboardUI(); // Profile
+      case 4:
+        return const AdminLeaveScreen(); // Prof
+
+      case 5:
+        return const AdminLeaveScreen();
       default:
         return const ProfilePage();
     }
@@ -63,6 +69,8 @@ class _DashboardPageState extends State<DashboardScreen> {
                       tabItem("Salary", Icons.verified, 2),
                       const SizedBox(height: 10),
                       tabItem("Profile", Icons.person, 3),
+                      const SizedBox(height: 10),
+                      tabItem("leave apporaval", Icons.person, 4),
                     ],
                   ),
                 ),
@@ -94,6 +102,8 @@ class _DashboardPageState extends State<DashboardScreen> {
                     icon: Icon(Icons.verified), label: "Salary"),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.person), label: "Profile"),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: "leave approval"),
               ],
             ),
     );

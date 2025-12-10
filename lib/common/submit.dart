@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SubmitButton extends StatelessWidget {
-  final Future<void> Function()? onSubmit;
+  final Function()? onSubmit;
   final String label;
   final double width;
   final Color color;
