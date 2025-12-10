@@ -23,7 +23,7 @@ class _DashboardPageState extends State<DashboardScreen> {
   Widget selectedContent() {
     switch (selectedTab) {
       case 0:
-        return const EmployeeScreen(); // Main Dashboard
+        return EmployeeScreen(); // Main Dashboard
       case 1:
         return const DashboardUI(); // Leave Dashboard
       case 2:
@@ -36,7 +36,7 @@ class _DashboardPageState extends State<DashboardScreen> {
       case 5:
         return const AdminLeaveScreen();
       default:
-        return const ProfilePage();
+        return const Text("`No Content`");
     }
   }
 

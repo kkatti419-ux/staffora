@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:staffora/data/models/firebase_model/auth/login_model.dart';
 import 'package:staffora/data/models/firebase_model/auth/signup_model.dart';
@@ -17,6 +18,22 @@ class FirebaseAuthService {
   /// Stream of auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  Future<String> generateUniqueEmployeeId() async {
+    final idDoc =
+        FirebaseFirestore.instance.collection('meta').doc('employeeCounter');
+
+    return FirebaseFirestore.instance.runTransaction((transaction) async {
+      final snapshot = await transaction.get(idDoc);
+
+      int current = snapshot.exists ? snapshot['count'] : 0;
+      int newId = current + 1;
+
+      transaction.set(idDoc, {'count': newId});
+
+      return "EMP-${newId.toString().padLeft(4, '0')}";
+    });
+  }
+
   Future<bool> signup(RegisterModel registerModel) async {
     try {
       // 1️⃣ Create Firebase Auth Account
@@ -26,36 +43,44 @@ class FirebaseAuthService {
       );
 
       final user = credential.user;
-      if (user == null) {
-        return false;
-      }
+      if (user == null) return false;
 
       // 2️⃣ Update display name if provided
       if (registerModel.name.isNotEmpty) {
         await user.updateDisplayName(registerModel.name);
       }
 
-      // 3️⃣ Create user profile in Firestore
-      final UserProfile userProfile = UserProfile(
+      // 3️⃣ Generate permanent unique employee ID
+      final String uniqueId = await generateUniqueEmployeeId();
+
+      // 4️⃣ Create employee Firestore profile
+      Employee emp = Employee(
         userId: user.uid,
+        uniqueId: uniqueId, // 👈 permanent employee ID
         firstname: null,
         lastname: null,
-        email: registerModel.email,
+        dept: null,
+        companyEmail: registerModel.email,
+        personalEmail: null,
+        phone: null,
+        bloodGroup: null,
         address: null,
-        changepassword: null,
+        noOfLeaves: 12,
         joinDate: DateTime.now(),
+        role: "user",
         profileImageUrl: null,
       );
 
+      // 5️⃣ Save profile to Firestore
       await _firestoreService.setDocument(
         'employees',
         user.uid,
-        userProfile.toJson(),
+        emp.toJson(),
         merge: true,
       );
 
       AppLogger.debug('User signed up successfully: ${user.email}');
-      return true; // SUCCESS ✔
+      return true;
     }
 
     // Firebase errors

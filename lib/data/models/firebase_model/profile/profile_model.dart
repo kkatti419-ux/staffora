@@ -1,53 +1,72 @@
-class UserProfile {
-  final String userId;
+class Employee {
+  final String userId; // Firebase Auth UID
+  final String uniqueId; // Your custom unique employee ID
+  final String? dept;
   final String? firstname;
   final String? lastname;
-  final String? email;
+  final String? companyEmail; // cemail
+  final String? personalEmail; // pemail
+  final String? phone;
+  final String? bloodGroup;
   final String? address;
-  final String? changepassword;
-  final String? role; // admin or user
-
+  final int? noOfLeaves;
   final DateTime? joinDate;
+  final String? role; // admin or user
   final String? profileImageUrl;
 
-  UserProfile({
+  Employee({
     required this.userId,
+    required this.uniqueId,
+    this.dept,
     this.firstname,
     this.lastname,
-    this.email,
+    this.companyEmail,
+    this.personalEmail,
+    this.phone,
+    this.bloodGroup,
     this.address,
-    this.changepassword,
-    this.role,
+    this.noOfLeaves,
     this.joinDate,
+    this.role,
     this.profileImageUrl,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
+      'uniqueId': uniqueId,
+      'dept': dept,
       'firstname': firstname,
       'lastname': lastname,
-      'email': email,
+      'companyEmail': companyEmail,
+      'personalEmail': personalEmail,
+      'phone': phone,
+      'bloodGroup': bloodGroup,
       'address': address,
-      'changepassword': changepassword,
-      'role': role,
+      'noOfLeaves': noOfLeaves,
       'joinDate': joinDate?.toIso8601String(),
+      'role': role,
       'profileImageUrl': profileImageUrl,
     };
   }
 
-  // optional: factory to create from Firestore doc
-  factory UserProfile.fromJson(Map<String, dynamic> map) {
-    return UserProfile(
-      userId: map['userId'] as String,
-      firstname: map['firstname'] as String?,
-      lastname: map['lastname'] as String?,
-      email: map['email'] as String?,
-      address: map['address'] as String?,
-      role: map['role'] as String?,
+  factory Employee.fromJson(Map<String, dynamic> map) {
+    return Employee(
+      userId: map['userId'] ?? '',
+      uniqueId: map['uniqueId'] ?? '',
+      dept: map['dept'],
+      firstname: map['firstname'],
+      lastname: map['lastname'],
+      companyEmail: map['companyEmail'],
+      personalEmail: map['personalEmail'],
+      phone: map['phone'],
+      bloodGroup: map['bloodGroup'],
+      address: map['address'],
+      noOfLeaves: map['noOfLeaves'],
       joinDate:
           map['joinDate'] != null ? DateTime.parse(map['joinDate']) : null,
-      profileImageUrl: map['profileImageUrl'] as String?,
+      role: map['role'],
+      profileImageUrl: map['profileImageUrl'],
     );
   }
 }

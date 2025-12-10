@@ -35,7 +35,6 @@ class _SignupScreenState extends State<SignupScreen> {
       employeeId: _employeeIdCtrl.text,
       password: _passwordCtrl.text,
     );
-
     try {
       final success = await _authController.signUp(data);
 
@@ -45,11 +44,9 @@ class _SignupScreenState extends State<SignupScreen> {
         );
         return;
       }
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Registration successful!")),
       );
-
       context.go('/auth/login');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
