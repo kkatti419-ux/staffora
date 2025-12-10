@@ -17,7 +17,7 @@ class AuthController extends GetxController {
 
   AuthController({required this.usecase});
 
-  final FirebaseProfileServices _profileService = FirebaseProfileServices();
+  // final FirebaseProfileServices _profileService = FirebaseProfileServices();
   final GetStorage storage = GetStorage();
 
   // Reactive Firebase User

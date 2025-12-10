@@ -29,6 +29,7 @@ class EmployeeCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Top Section (Avatar + Name + ID)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -36,10 +37,13 @@ class EmployeeCard extends StatelessWidget {
                   radius: 22,
                   backgroundColor: const Color(0xFF7C3AED),
                   child: Text(
-                    employee.userId,
+                    employee.firstname != null && employee.firstname!.isNotEmpty
+                        ? employee.firstname![0].toUpperCase()
+                        : "?",
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
+                      fontSize: 18,
                     ),
                   ),
                 ),
@@ -58,7 +62,7 @@ class EmployeeCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        employee.userId,
+                        employee.uniqueId ?? employee.userId,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -69,31 +73,49 @@ class EmployeeCard extends StatelessWidget {
                 )
               ],
             ),
+
             const SizedBox(height: 16),
-            // _EmployeeInfoRow(
-            //   icon: Icons.work_outline,
-            //   text: employee.role,
-            // ),
+
+            // Role
+            _employeeInfoRow(
+              icon: Icons.work_outline,
+              text: employee.role,
+            ),
+
             const SizedBox(height: 8),
-            // DepartmentChip(text: employee.department),
+
+            // Department chip
+            DepartmentChip(text: employee.dept),
+
             const SizedBox(height: 12),
-            // _EmployeeInfoRow(
-            //   icon: Icons.email_outlined,
-            //   text: employee.email,
-            // ),
-            // const SizedBox(height: 6),
-            // _EmployeeInfoRow(
-            //   icon: Icons.phone_in_talk_outlined,
-            //   text: employee.phone,
-            // ),
-            // const SizedBox(height: 6),
-            // _EmployeeInfoRow(
-            //   icon: Icons.calendar_today_outlined,
-            //   text: 'Joined ${formatDate(employee.joined)}',
-            // ),
+
+            // Email
+            _employeeInfoRow(
+              icon: Icons.email_outlined,
+              text: employee.companyEmail ?? employee.personalEmail,
+            ),
+
+            const SizedBox(height: 6),
+
+            // Phone
+            _employeeInfoRow(
+              icon: Icons.phone_in_talk_outlined,
+              text: employee.phone,
+            ),
+
+            const SizedBox(height: 6),
+
+            // Join date
+            _employeeInfoRow(
+              icon: Icons.calendar_today_outlined,
+              text: "Joined ${formatDate(employee.joinDate)}",
+            ),
+
             const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 12),
+
+            // Bottom Buttons
             Row(
               children: [
                 Expanded(
@@ -139,4 +161,49 @@ class EmployeeCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _employeeInfoRow({required IconData icon, required String? text}) {
+  return Row(
+    children: [
+      Icon(icon, size: 18, color: Colors.grey.shade600),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          text ?? "N/A",
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+        ),
+      ),
+    ],
+  );
+}
+
+class DepartmentChip extends StatelessWidget {
+  final String? text;
+
+  const DepartmentChip({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEDE9FE),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text ?? "No Dept",
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF7C3AED),
+        ),
+      ),
+    );
+  }
+}
+
+String formatDate(DateTime? date) {
+  if (date == null) return "N/A";
+  return "${date.day}/${date.month}/${date.year}";
 }

@@ -1,176 +1,8 @@
-// import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:staffora/common/primary_button.dart';
-// import 'package:staffora/core/utils/logger.dart';
-// import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
-// import 'package:staffora/data/models/firebase_model/employee/employee.dart';
-// import 'package:staffora/presentation/employee/views/addor_edit_employee.dart';
-// import 'package:staffora/presentation/employee/views/employee_card.dart';
-
-// class EmployeeScreen extends StatefulWidget {
-//   const EmployeeScreen({super.key});
-
-//   @override
-//   State<EmployeeScreen> createState() => _EmployeeScreenState();
-// }
-
-// class _EmployeeScreenState extends State<EmployeeScreen> {
-//   final FirebaseEmployeeService _employeeService = FirebaseEmployeeService();
-
-//   String? _currentUserId;
-//   bool _isAdmin = false;
-//   bool _loading = true;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadLoggedUser();
-//   }
-
-//   // 🔥 Get current user & check role from Employee collection
-//   Future<void> _loadLoggedUser() async {
-//     try {
-//       _currentUserId = FirebaseAuth.instance.currentUser?.uid;
-
-//       if (_currentUserId == null) {
-//         _loading = false;
-//         return setState(() {});
-//       }
-
-//       // Fetch the employee document of logged-in user
-//       final employee =
-//           await _employeeService.fetchEmployeeByUserId(_currentUserId!);
-
-//       _isAdmin = (employee?.role ?? "").toLowerCase() == "admin";
-
-//       AppLogger.debug("Role = ${employee?.role} | isAdmin = $_isAdmin");
-
-//       setState(() => _loading = false);
-//     } catch (e, st) {
-//       AppLogger.error("Error loading employee role", error: e, stackTrace: st);
-//       setState(() => _loading = false);
-//     }
-//   }
-
-//   Future<void> _openAddDialog() async {
-//     await showDialog(
-//       context: context,
-//       builder: (_) => const EmployeeDialog(
-//         isEdit: false,
-//         employeeId: null,
-//       ),
-//     );
-//   }
-
-//   Future<void> _openEditDialog(EmployeeModelClass employee) async {
-//     await showDialog(
-//       context: context,
-//       builder: (_) => EmployeeDialog(
-//         isEdit: true,
-//         employeeId: employee.id,
-//         initialEmployee: employee,
-//       ),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (_loading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-
-//     // 🔥 Correct Stream based on role
-//     final stream = _isAdmin
-//         ? _employeeService.fetchAllEmployees()
-//         : _employeeService.fetchEmployeeByUserId(_currentUserId!);
-
-//     return Column(
-//       children: [
-//         Expanded(
-//           child: StreamBuilder<List<EmployeeModelClass>>(
-//             stream: stream,
-//             builder: (context, snapshot) {
-//               if (!snapshot.hasData) {
-//                 return const Center(child: CircularProgressIndicator());
-//               }
-
-//               final employees = snapshot.data ?? [];
-
-//               return Padding(
-//                 padding:
-//                     const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-//                 child: LayoutBuilder(
-//                   builder: (context, constraints) {
-//                     final isSmall = constraints.maxWidth < 700;
-
-//                     return Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         // HEADER
-//                         Row(
-//                           children: [
-//                             Expanded(
-//                               child: Text(
-//                                 _isAdmin ? "All Employees" : "My Profile",
-//                                 style: const TextStyle(
-//                                   fontSize: 22,
-//                                   fontWeight: FontWeight.w600,
-//                                 ),
-//                               ),
-//                             ),
-//                             if (_isAdmin)
-//                               PrimaryButton(
-//                                 text: "Add",
-//                                 icon: Icons.add,
-//                                 onPressed: _openAddDialog,
-//                               )
-//                           ],
-//                         ),
-
-//                         const SizedBox(height: 20),
-
-//                         employees.isEmpty
-//                             ? Center(
-//                                 child: Text(_isAdmin
-//                                     ? "No employees found"
-//                                     : "No profile data found"))
-//                             : Wrap(
-//                                 spacing: 24,
-//                                 runSpacing: 24,
-//                                 children: employees.map((emp) {
-//                                   return SizedBox(
-//                                     width: isSmall
-//                                         ? constraints.maxWidth
-//                                         : (constraints.maxWidth - 48) / 3,
-//                                     child: EmployeeCard(
-//                                       employee: emp,
-//                                       isAdmin: _isAdmin,
-//                                       onEdit: () => _openEditDialog(emp),
-//                                       onDelete: () {},
-//                                     ),
-//                                   );
-//                                 }).toList(),
-//                               )
-//                       ],
-//                     );
-//                   },
-//                 ),
-//               );
-//             },
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:staffora/common/employee_card.dart';
 import 'package:staffora/common/primary_button.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
-import 'package:staffora/data/models/firebase_model/employee/employee.dart';
 import 'package:staffora/data/models/firebase_model/profile/profile_model.dart';
 import 'package:staffora/presentation/employee/views/addor_edit_employee.dart';
 import 'package:staffora/presentation/employee/views/employee_card.dart';
@@ -217,6 +49,18 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
       AppLogger.error("Failed loading role", error: e, stackTrace: st);
       setState(() => _loadingRole = false);
     }
+  }
+
+  Future<void> _openEditDialog(Employee employee) async {
+    await showDialog(
+      context: context,
+      builder: (_) => EmployeeDialog(
+        isEdit: true,
+        employeeId: employee.userId, // OR employee.id based on your DB
+        initialEmployee: employee, // Prefill form
+      ),
+    );
+    setState(() {}); // Refresh UI after save
   }
 
   @override
@@ -281,10 +125,11 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                       child: ListView.builder(
                         itemCount: employees.length,
                         itemBuilder: (context, i) {
+                          Employee employee = employees[i];
                           return EmployeeCard(
-                            employee: employees[i],
+                            employee: employee,
                             isAdmin: _isAdmin,
-                            onEdit: () {},
+                            onEdit: () => _openEditDialog(employee),
                             onDelete: () {},
                           );
                         },

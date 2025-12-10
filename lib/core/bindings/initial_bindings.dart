@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:staffora/data/firebase_services/firebase_auth_service.dart';
-import 'package:staffora/data/firebase_services/firebase_profile_services.dart';
 import 'package:staffora/data/repositories/auth_repository.dart';
 import 'package:staffora/data/repositories/product_repository.dart';
 import 'package:staffora/domain/repositories/i_auth_repository.dart';
@@ -27,7 +26,7 @@ class InitialBindings extends Bindings {
 
     // ========== PROFILE DEPENDENCIES ==========
     // 1️⃣ Register Firebase Profile Services
-    Get.lazyPut(() => FirebaseProfileServices());
+    // Get.lazyPut(() => FirebaseProfileServices());
 
     // // 2️⃣ Register Profile Repository
     // Get.lazyPut<IProfileRepository>(
