@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmployeeModelClass {
   String? id;
+  String? userId; // Link to user account
   String name;
   String role;
   String department;
@@ -12,6 +13,7 @@ class EmployeeModelClass {
 
   EmployeeModelClass({
     this.id,
+    this.userId,
     required this.name,
     required this.role,
     required this.department,
@@ -24,6 +26,7 @@ class EmployeeModelClass {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'userId': userId,
       'name': name,
       'role': role,
       'department': department,
@@ -39,6 +42,7 @@ class EmployeeModelClass {
       {String? documentId}) {
     return EmployeeModelClass(
       id: documentId ?? map['id'],
+      userId: map['userId'] as String?,
       name: map['name'] ?? '',
       role: map['role'] ?? '',
       department: map['department'] ?? '',

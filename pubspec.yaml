@@ -53,6 +53,8 @@ dependencies:
   fl_chart: ^0.63.0
   timezone: ^0.10.1
   flutter_local_notifications: ^19.5.0
+  cached_network_image: ^3.4.1
+
 
 dev_dependencies:
   flutter_test:

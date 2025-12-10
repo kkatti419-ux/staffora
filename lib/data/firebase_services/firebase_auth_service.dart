@@ -17,28 +17,22 @@ class FirebaseAuthService {
   /// Stream of auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  /// Sign up with email and password
-  Future<UserCredential> signup(RegisterModel registerModel) async {
+  Future<bool> signup(RegisterModel registerModel) async {
     try {
       // 1️⃣ Create Firebase Auth Account
-      final UserCredential credential = await _auth.createUserWithEmailAndPassword(
+      final credential = await _auth.createUserWithEmailAndPassword(
         email: registerModel.email,
         password: registerModel.password,
       );
 
-      final User? user = credential.user;
-
+      final user = credential.user;
       if (user == null) {
-        throw FirebaseAuthException(
-          code: 'USER_NULL',
-          message: 'User creation returned null user.',
-        );
+        return false;
       }
 
       // 2️⃣ Update display name if provided
       if (registerModel.name.isNotEmpty) {
         await user.updateDisplayName(registerModel.name);
-        await user.reload();
       }
 
       // 3️⃣ Create user profile in Firestore
@@ -54,46 +48,69 @@ class FirebaseAuthService {
       );
 
       await _firestoreService.setDocument(
-        'profiles',
+        'employees',
         user.uid,
-        userProfile.toMap(),
+        userProfile.toJson(),
         merge: true,
       );
 
       AppLogger.debug('User signed up successfully: ${user.email}');
-      return credential;
-    } on FirebaseAuthException catch (e) {
+      return true; // SUCCESS ✔
+    }
+
+    // Firebase errors
+    on FirebaseAuthException catch (e) {
       AppLogger.error(
         'Firebase Auth Exception during signup',
         error: e,
         stackTrace: StackTrace.current,
       );
-      rethrow;
-    } catch (e, stackTrace) {
-      AppLogger.error('Signup error', error: e, stackTrace: stackTrace);
-      rethrow;
+      return false;
+    }
+
+    // Other errors
+    catch (e, stackTrace) {
+      AppLogger.error(
+        'Signup error',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
     }
   }
 
   /// Sign in with email and password
-  Future<UserCredential> signin(LoginModel loginModel) async {
+  Future<bool> signin(LoginModel loginModel) async {
     try {
-      final UserCredential credential = await _auth.signInWithEmailAndPassword(
+      // Firebase Login
+      final credential = await _auth.signInWithEmailAndPassword(
         email: loginModel.email,
         password: loginModel.password,
       );
+
+      if (credential.user == null) {
+        return false; // User not found
+      }
+
       AppLogger.debug('User signed in successfully: ${credential.user?.email}');
-      return credential;
-    } on FirebaseAuthException catch (e) {
+
+      return true; // SUCCESS ✔
+    }
+
+    // Firebase Auth Errors (wrong password, no user, etc.)
+    on FirebaseAuthException catch (e) {
       AppLogger.error(
         'Firebase Auth Exception during signin',
         error: e,
         stackTrace: StackTrace.current,
       );
-      rethrow;
-    } catch (e, stackTrace) {
+      return false; // FAIL ❌
+    }
+
+    // Any other error
+    catch (e, stackTrace) {
       AppLogger.error('Signin error', error: e, stackTrace: stackTrace);
-      rethrow;
+      return false; // FAIL ❌
     }
   }
 
@@ -157,10 +174,10 @@ class FirebaseAuthService {
           message: 'No user is currently signed in',
         );
       }
-      
+
       // Delete user profile from Firestore
       await _firestoreService.deleteDocument('profiles', user.uid);
-      
+
       // Delete auth account
       await user.delete();
       AppLogger.debug('User account deleted successfully');

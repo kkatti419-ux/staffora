@@ -4,7 +4,6 @@ import 'package:staffora/presentation/auth/views/login_screen.dart';
 import 'package:staffora/presentation/auth/views/register_screen.dart';
 import 'package:staffora/presentation/dashboard/views/dashboard_screen.dart';
 import 'package:staffora/presentation/product/views/create_product_view.dart';
-import 'package:staffora/presentation/profile/views/profile_view.dart';
 import 'package:staffora/presentation/users/views/getall_users_view.dart';
 import '../../presentation/product/views/product_success_view.dart';
 
@@ -14,7 +13,7 @@ class AppRouter {
     routes: [
       GoRoute(
         path: "/auth/register",
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
         path: "/auth/login",

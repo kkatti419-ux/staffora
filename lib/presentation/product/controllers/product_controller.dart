@@ -6,7 +6,6 @@ import 'package:staffora/core/utils/snackbar_service.dart';
 import 'package:staffora/data/models/api_models/product/posts_model.dart';
 import 'package:staffora/domain/usecases/create_product_usecase.dart';
 import '../../../data/models/api_models/product/product_model.dart';
-import '../../../data/repositories/product_repository.dart';
 
 class ProductController extends GetxController {
   // final repo = ProductRepository();

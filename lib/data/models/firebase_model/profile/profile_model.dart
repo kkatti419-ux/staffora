@@ -5,6 +5,8 @@ class UserProfile {
   final String? email;
   final String? address;
   final String? changepassword;
+  final String? role; // admin or user
+
   final DateTime? joinDate;
   final String? profileImageUrl;
 
@@ -15,11 +17,12 @@ class UserProfile {
     this.email,
     this.address,
     this.changepassword,
+    this.role,
     this.joinDate,
     this.profileImageUrl,
   });
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'userId': userId,
       'firstname': firstname,
@@ -27,20 +30,21 @@ class UserProfile {
       'email': email,
       'address': address,
       'changepassword': changepassword,
+      'role': role,
       'joinDate': joinDate?.toIso8601String(),
       'profileImageUrl': profileImageUrl,
     };
   }
 
   // optional: factory to create from Firestore doc
-  factory UserProfile.fromMap(Map<String, dynamic> map) {
+  factory UserProfile.fromJson(Map<String, dynamic> map) {
     return UserProfile(
       userId: map['userId'] as String,
       firstname: map['firstname'] as String?,
       lastname: map['lastname'] as String?,
       email: map['email'] as String?,
       address: map['address'] as String?,
-      changepassword: map['changepassword'] as String?,
+      role: map['role'] as String?,
       joinDate:
           map['joinDate'] != null ? DateTime.parse(map['joinDate']) : null,
       profileImageUrl: map['profileImageUrl'] as String?,

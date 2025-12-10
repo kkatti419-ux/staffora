@@ -3,11 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:staffora/core/utils/logger.dart';
+import 'package:staffora/data/firebase_services/firebase_profile_services.dart';
 
 /// Google Sign-In Service
 /// Handles Google authentication for web, Android, and iOS
 class GoogleSignInService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseProfileServices _profileService = FirebaseProfileServices();
   
   // Web client ID for Google Sign-In
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -58,6 +60,7 @@ class GoogleSignInService {
         
         if (user != null) {
           await _saveUserToFirestore(user);
+          await _profileService.storeRoleOnLogin(user.uid);
         }
 
         AppLogger.debug('Web Google sign-in successful (popup): ${user?.email}');
@@ -114,6 +117,7 @@ class GoogleSignInService {
     
     if (user != null) {
       await _saveUserToFirestore(user);
+      await _profileService.storeRoleOnLogin(user.uid);
     }
 
     AppLogger.debug('Mobile Google sign-in successful: ${user?.email}');
@@ -176,6 +180,7 @@ class GoogleSignInService {
       if (userCredential != null && userCredential.user != null) {
         final user = userCredential.user!;
         await _saveUserToFirestore(user);
+        await _profileService.storeRoleOnLogin(user.uid);
         AppLogger.debug('Web Google sign-in successful (redirect): ${user.email}');
         return user;
       }

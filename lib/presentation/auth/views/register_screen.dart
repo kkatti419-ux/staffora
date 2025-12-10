@@ -1,235 +1,138 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
-import 'package:staffora/core/theme/theme_controller.dart';
-import 'package:staffora/data/firebase_services/firebase_auth_service.dart';
+import 'package:staffora/common/auth/reusable_auth_card.dart';
+import 'package:staffora/common/custom_textinput_field.dart';
 import 'package:staffora/data/models/firebase_model/auth/signup_model.dart';
 import 'package:staffora/presentation/auth/controllers/auth_controller.dart';
+import 'package:go_router/go_router.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
-  final nameCtrl = TextEditingController(text: "abc");
-  final emailCtrl = TextEditingController(text: "abcddd@gmail.com");
-  final passCtrl = TextEditingController(text: "123456");
-  final confirmPassCtrl = TextEditingController(text: "123456");
+class _SignupScreenState extends State<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _usernameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _employeeIdCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
 
-  AuthController authController = Get.put(AuthController());
+  final AuthController _authController = Get.find<AuthController>();
 
-  bool obscure = true;
-  bool obscureConfirm = true;
+  bool _loading = false;
+
+  Future<void> register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _loading = true);
+
+    final data = RegisterModel(
+      name: _usernameCtrl.text,
+      email: _emailCtrl.text,
+      employeeId: _employeeIdCtrl.text,
+      password: _passwordCtrl.text,
+    );
+
+    try {
+      final success = await _authController.signUp(data);
+
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registration failed")),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Registration successful!")),
+      );
+
+      context.go('/auth/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 40),
-              Text(
-                "Create Account ✨",
-                style: GoogleFonts.poppins(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                "Register to get started",
-                style: GoogleFonts.poppins(fontSize: 15, color: Colors.grey),
-              ),
-
-              const SizedBox(height: 40),
-
-              // Full Name
-              TextField(
-                controller: nameCtrl,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: "Full Name",
-                  prefixIcon: const Icon(Icons.person),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Email
-              TextField(
-                controller: emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  prefixIcon: const Icon(Icons.email),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Password
-              TextField(
-                controller: passCtrl,
-                obscureText: obscure,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon:
-                        Icon(obscure ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () => setState(() => obscure = !obscure),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Confirm Password
-              TextField(
-                controller: confirmPassCtrl,
-                obscureText: obscureConfirm,
-                decoration: InputDecoration(
-                  labelText: "Confirm Password",
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(obscureConfirm
-                        ? Icons.visibility
-                        : Icons.visibility_off),
-                    onPressed: () =>
-                        setState(() => obscureConfirm = !obscureConfirm),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Register Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (passCtrl.text != confirmPassCtrl.text) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Passwords do not match")),
-                      );
-                      return;
-                    }
-
-                    RegisterModel registerModel = RegisterModel(
-                      name: nameCtrl.text,
-                      email: emailCtrl.text,
-                      password: passCtrl.text,
-                    );
-
-                    await authController.signUp(registerModel);
-                    context.go('/profile/user');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "Register",
-                    style: TextStyle(fontSize: 17, color: Colors.white),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              const Row(
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Text("Or continue with"),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // OAuth Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _oauthButton("assets/png/google.png", onTap: () {}),
-                  const SizedBox(width: 20),
-                  _oauthButton("assets/png/apple.png", onTap: () {}),
-                ],
-              ),
-
-              const Spacer(),
-
-              Center(
-                child: GestureDetector(
-                  onTap: () {
-                    context.go('/login');
-                  },
-                  child: RichText(
-                    text: const TextSpan(
-                      text: "Already have an account? ",
-                      style: TextStyle(color: Colors.black87),
-                      children: [
-                        TextSpan(
-                          text: "Login",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF7B5CFF), Color(0xFFFF6AD5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _oauthButton(String asset, {required Function() onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Image.asset(
-          asset,
-          width: 28,
-          height: 28,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: ReusableAuthCard(
+                  formKey: _formKey,
+                  title: "Create Account",
+                  subtitle: "Register a new employee",
+                  fields: [
+                    const Text("Username",
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 8),
+                    CustomInputField(
+                      hintText: "Enter your name",
+                      icon: Icons.person_outline,
+                      controller: _usernameCtrl,
+                      validator: (v) => v!.isEmpty ? "Enter username" : null,
+                    ),
+                    const SizedBox(height: 18),
+                    const Text("Email Address",
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 8),
+                    CustomInputField(
+                      hintText: "Enter email",
+                      icon: Icons.email_outlined,
+                      controller: _emailCtrl,
+                      validator: (v) => v!.isEmpty ? "Enter email" : null,
+                    ),
+                    const SizedBox(height: 18),
+                    const Text("Employee ID",
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 8),
+                    CustomInputField(
+                      hintText: "Enter employee ID",
+                      icon: Icons.badge_outlined,
+                      controller: _employeeIdCtrl,
+                      validator: (v) => v!.isEmpty ? "Enter employee ID" : null,
+                    ),
+                    const SizedBox(height: 18),
+                    const Text("Password",
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 8),
+                    CustomInputField(
+                      hintText: "Enter password",
+                      icon: Icons.lock_outline,
+                      obscureText: true,
+                      controller: _passwordCtrl,
+                      validator: (v) => v!.isEmpty ? "Enter password" : null,
+                    ),
+                  ],
+                  primaryButtonText: "Sign Up",
+                  onPrimaryButtonTap: register,
+                  footerText: "Already have an account?",
+                  footerButtonText: "Sign In",
+                  footerRoute: "/auth/login",
+                )),
+          ),
         ),
       ),
     );

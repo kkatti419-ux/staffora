@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:staffora/data/firebase_services/firebase_storage_service.dart';
-import 'package:staffora/data/firebase_services/firestore_service.dart';
 import 'package:staffora/data/models/firebase_model/profile/profile_model.dart';
 import 'package:staffora/presentation/auth/controllers/auth_controller.dart';
 import 'package:staffora/core/utils/logger.dart';
+import 'package:staffora/presentation/profile/controllers/profile_controller.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -17,17 +18,51 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final FirebaseStorageService _storageService = FirebaseStorageService();
-  final FirestoreService _firestoreService = FirestoreService();
   final AuthController _authController = Get.find<AuthController>();
+  late final ProfileController _profileController;
 
   File? profileImage;
-  bool isLoading = false;
+  String? existingImageUrl;
 
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load profile data when the page initializes
+    _profileController = Get.find<ProfileController>();
+    _loadProfileData();
+  }
+
+  void _loadProfileData() {
+    // First, check if profile data is already loaded and prefill immediately
+    final currentProfile = _profileController.userProfile.value;
+    if (currentProfile != null) {
+      _populateFields(currentProfile);
+    }
+
+    // Also listen to profile changes for reactive updates
+    _profileController.userProfile.listen((profile) {
+      if (profile != null && mounted) {
+        _populateFields(profile);
+      }
+    });
+  }
+
+  void _populateFields(UserProfile profile) {
+    if (mounted) {
+      setState(() {
+        firstNameController.text = profile.firstname ?? "";
+        lastNameController.text = profile.lastname ?? "";
+        emailController.text = profile.email ?? "";
+        addressController.text = profile.address ?? "";
+        existingImageUrl = profile.profileImageUrl;
+      });
+    }
+  }
 
   Future<void> pickImage() async {
     final pickedFile =
@@ -40,63 +75,78 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> saveProfile() async {
-    final userId = _authController.userId;
+  // Future<void> saveProfile() async {
+  //   final userId = _authController.userId;
 
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("User not logged in")),
-      );
-      return;
-    }
+  //   if (userId == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("User not logged in")),
+  //     );
+  //     return;
+  //   }
 
-    setState(() => isLoading = true);
+  //   // Validate required fields
+  //   if (firstNameController.text.trim().isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("First name is required")),
+  //     );
+  //     return;
+  //   }
 
-    try {
-      String? imageUrl;
+  //   if (emailController.text.trim().isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Email is required")),
+  //     );
+  //     return;
+  //   }
 
-      if (profileImage != null) {
-        imageUrl =
-            await _storageService.uploadProfileImage(userId, profileImage!);
-        AppLogger.debug("Uploaded Image URL: $imageUrl");
-      }
+  //   try {
+  //     String? imageUrl = existingImageUrl;
 
-      UserProfile profile = UserProfile(
-        userId: userId,
-        firstname: firstNameController.text.trim(),
-        lastname: lastNameController.text.trim(),
-        email: emailController.text.trim(),
-        address: addressController.text.trim(),
-        changepassword: passwordController.text.trim(),
-        profileImageUrl: imageUrl,
-        joinDate: DateTime.now(),
-      );
+  //     // Upload new image if selected
+  //     if (profileImage != null) {
+  //       imageUrl =
+  //           await _storageService.uploadProfileImage(userId, profileImage!);
+  //       AppLogger.debug("Uploaded Image URL: $imageUrl");
+  //     }
 
-      await _firestoreService.updateDocument(
-        'profiles',
-        userId,
-        profile.toMap(),
-      );
+  //     UserProfile profile = UserProfile(
+  //       userId: userId,
+  //       firstname: firstNameController.text.trim(),
+  //       lastname: lastNameController.text.trim(),
+  //       email: emailController.text.trim(),
+  //       address: addressController.text.trim(),
+  //       profileImageUrl: imageUrl,
+  //       joinDate:
+  //           _profileController.userProfile.value?.joinDate ?? DateTime.now(),
+  //     );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profile updated successfully!")),
-        );
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error("Failed to update profile",
-          error: e, stackTrace: stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${e.toString()}")),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
-    }
-  }
+  //     // Use the controller's update method
+  //     final success = await _profileController.updateUserProfile(
+  //       profile: profile,
+  //       context: context,
+  //     );
+
+  //     if (success && mounted) {
+  //       // Clear the local image after successful upload
+  //       setState(() {
+  //         profileImage = null;
+  //         existingImageUrl = imageUrl;
+  //       });
+
+  //       // Reload profile to ensure we have the latest data from server
+  //       await _profileController.loadProfile();
+  //     }
+  //   } catch (e, stackTrace) {
+  //     AppLogger.error("Failed to update profile",
+  //         error: e, stackTrace: stackTrace);
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text("Error: ${e.toString()}")),
+  //       );
+  //     }
+  //   }
+  // }
 
   Widget buildTextField(String label, TextEditingController controller,
       {bool obscure = false, int maxLines = 1}) {
@@ -138,6 +188,15 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   @override
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    emailController.dispose();
+    addressController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -152,86 +211,98 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(width: 10),
         ],
       ),
-      body: Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // Profile Photo Section
-                    Center(
-                      child: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.grey.shade300,
-                            backgroundImage: profileImage != null
-                                ? FileImage(profileImage!)
-                                : null,
-                            child: profileImage == null
-                                ? const Icon(Icons.person,
-                                    size: 60, color: Colors.white)
-                                : null,
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: pickImage,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.camera_alt,
-                                    color: Colors.white, size: 20),
-                              ),
+      body: Obx(() {
+        final isLoading = _profileController.isLoading.value;
+        final profile = _profileController.userProfile.value;
+
+        if (isLoading && profile == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Profile Photo Section
+                      Center(
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 60,
+                              backgroundColor: Colors.grey.shade300,
+                              backgroundImage: profileImage != null
+                                  ? FileImage(profileImage!)
+                                  : (existingImageUrl != null
+                                      ? CachedNetworkImageProvider(
+                                          existingImageUrl!)
+                                      : null) as ImageProvider?,
+                              child: profileImage == null &&
+                                      existingImageUrl == null
+                                  ? const Icon(Icons.person,
+                                      size: 60, color: Colors.white)
+                                  : null,
                             ),
-                          )
-                        ],
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: pickImage,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.camera_alt,
+                                      color: Colors.white, size: 20),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 25),
+                      const SizedBox(height: 25),
 
-                    buildTextField("First Name", firstNameController),
-                    buildTextField("Last Name", lastNameController),
-                    buildTextField("Email", emailController),
-                    buildTextField("Address", addressController, maxLines: 2),
-                    buildTextField("Change Password", passwordController,
-                        obscure: true),
-                  ],
-                ),
-              ),
-            ),
-
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : saveProfile,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                      buildTextField("First Name", firstNameController),
+                      buildTextField("Last Name", lastNameController),
+                      buildTextField("Email", emailController),
+                      buildTextField("Address", addressController, maxLines: 2),
+                    ],
                   ),
                 ),
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        "Save Changes",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
               ),
-            ),
-          ],
-        ),
-      ),
+
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  // isLoading ? null : saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Save Changes",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
