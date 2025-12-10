@@ -63,6 +63,49 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
     setState(() {}); // Refresh UI after save
   }
 
+  Future<void> _openAddDialog(Employee employee) async {
+    await showDialog(
+      context: context,
+      builder: (_) => EmployeeDialog(
+        isEdit: true,
+        employeeId: employee.userId, // OR employee.id based on your DB
+        initialEmployee: employee, // Prefill form
+      ),
+    );
+    setState(() {}); // Refresh UI after save
+  }
+
+  Future<void> _deleteEmployee(Employee employee) async {
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Delete Employee"),
+        content: Text(
+          "Are you sure you want to delete ${employee.firstname ?? 'this employee'}?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // close dialog
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // close the dialog
+
+              await _employeeService.deleteEmployee(employee.userId);
+
+              setState(() {}); // Refresh UI after delete
+            },
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loadingRole) {
@@ -130,7 +173,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                             employee: employee,
                             isAdmin: _isAdmin,
                             onEdit: () => _openEditDialog(employee),
-                            onDelete: () {},
+                            onDelete: () => _deleteEmployee(employee),
                           );
                         },
                       ),

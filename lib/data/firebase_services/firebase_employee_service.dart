@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:staffora/data/firebase_services/firestore_service.dart';
 import 'package:staffora/data/models/firebase_model/profile/profile_model.dart';
 
 class FirebaseEmployeeService {
+  final FirestoreService _firestoreService = FirestoreService();
+
   final _db = FirebaseFirestore.instance.collection('employees');
 
   // Fetch all employees
@@ -32,6 +35,12 @@ class FirebaseEmployeeService {
   // Update employee
   Future<void> updateEmployee(String userId, Map<String, dynamic> data) async {
     await _db.doc(userId).update(data);
+  }
+
+  Future<void> addEmployee(Map<String, dynamic> data) async {
+    final doc = _firestoreService.collection("employees").doc();
+    data["userId"] = doc.id; // auto-generate ID
+    await doc.set(data);
   }
 
   // Delete employee
