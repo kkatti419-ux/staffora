@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:staffora/presentation/employee/views/employee.dart';
 import 'package:staffora/presentation/leave/views/leave_dashboard.dart';
 import 'package:staffora/presentation/leave_approval.dart';
@@ -40,16 +42,66 @@ class _DashboardPageState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to logout?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Logout",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    // Perform logout
+    await FirebaseAuth.instance.signOut();
+
+    // Navigate to login screen
+    if (!mounted) return;
+    // context.go((route) => route.isFirst);
+    context.go('/auth/login');
+    // Navigator.pushNamedAndRemoveUntil(
+    //   context,
+    //   '/login', // your login route
+    //   (route) => false,
+    // );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool web = isWeb(context);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
+      // appBar: AppBar(
+      //     backgroundColor: Colors.white, elevation: 0.5, title: Text("data")
+      //     // DashboardAppBar(),
+
+      //     ),
       appBar: AppBar(
-          backgroundColor: Colors.white, elevation: 0.5, title: Text("data")
-          // DashboardAppBar(),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: const Text("Dashboard"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.red),
+            onPressed: _logout,
           ),
+        ],
+      ),
 
       body: web
           ? Row(

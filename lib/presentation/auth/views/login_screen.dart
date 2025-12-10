@@ -24,6 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _loading = false;
 
+  void _openForgotPassword() {
+    context.go('/auth/forgot');
+  }
+
   Future<void> handleLogin() async {
     if (_emailCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -107,6 +111,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordCtrl,
                       validator: (v) => v!.isEmpty ? "Enter password" : null,
                     ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _openForgotPassword,
+                        child: const Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
                   ],
                   primaryButtonText: "Sign In",
                   onPrimaryButtonTap: handleLogin,

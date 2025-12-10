@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -14,46 +15,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailCtrl = TextEditingController();
   final FirebaseAuthService _authService = FirebaseAuthService();
   bool loading = false;
-
-  Future<void> resetPassword() async {
+  Future<void> _openForgotPassword() async {
     if (emailCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your email")),
+        const SnackBar(content: Text("Enter your email to reset password")),
       );
       return;
     }
 
-    setState(() => loading = true);
-
     try {
-      String result = await _authService.sendPasswordResetEmail(emailCtrl.text);
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: emailCtrl.text.trim(),
+      );
 
-      if (result == "success") {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Password reset email sent! Check your inbox."),
-            ),
-          );
-          context.pop(); // Go back to login
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result)),
-          );
-        }
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Password reset link sent to your email"),
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    }
-
-    if (mounted) {
-      setState(() => loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
     }
   }
 
@@ -104,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: loading ? null : resetPassword,
+                  onPressed: loading ? null : _openForgotPassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
