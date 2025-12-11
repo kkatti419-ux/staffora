@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:staffora/common/auth/reusable_auth_card.dart';
+import 'package:staffora/common/reusable_auth_card.dart';
 import 'package:staffora/common/custom_textinput_field.dart';
 import 'package:staffora/data/models/firebase_model/auth/signup_model.dart';
 import 'package:staffora/presentation/auth/controllers/auth_controller.dart';

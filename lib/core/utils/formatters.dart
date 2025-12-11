@@ -3,10 +3,13 @@ class Formatters {
     return "₹ ${value.toStringAsFixed(2)}";
   }
 
-  static String date(DateTime value) {
-    return "${value.day}/${value.month}/${value.year}";
+  static String formatDate(DateTime? date) {
+    if (date == null) return "N/A";
+    return "${date.day}/${date.month}/${date.year}";
   }
 }
+
+
 
 /*
 For formatting:

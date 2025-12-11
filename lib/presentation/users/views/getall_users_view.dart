@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:staffora/presentation/users/controllers/user_controller.dart';
 
 class GetAllUsersView extends StatelessWidget {

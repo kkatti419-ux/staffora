@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:staffora/common/chip_group.dart';
+import 'package:staffora/common/icon_action_button.dart';
+import 'package:staffora/common/initial_avatar.dart';
+import 'package:staffora/common/submit_or_cancel.dart';
+import 'package:staffora/core/utils/formatters.dart';
 import 'package:staffora/data/models/firebase_model/profile/profile_model.dart';
 
 class EmployeeCard extends StatelessWidget {
@@ -17,35 +22,36 @@ class EmployeeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Material(
-      elevation: 6,
-      borderRadius: BorderRadius.circular(20),
+      elevation: 5,
+      borderRadius: BorderRadius.circular(18),
+      color: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: theme.cardColor.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: theme.dividerColor.withOpacity(0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Section (Avatar + Name + ID)
+            // 🧑‍💼 Top Section (Avatar + Name + ID)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: const Color(0xFF7C3AED),
-                  child: Text(
-                    employee.firstname != null && employee.firstname!.isNotEmpty
-                        ? employee.firstname![0].toUpperCase()
-                        : "?",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                    ),
-                  ),
+                InitialAvatar(
+                  name: employee.firstname,
+                  radius: 26,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -55,105 +61,88 @@ class EmployeeCard extends StatelessWidget {
                       Text(
                         employee.firstname ?? "N/A",
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
-                        employee.uniqueId ?? employee.userId,
+                        employee.uniqueId,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Role
+            // 🏢 Role
             _employeeInfoRow(
-              icon: Icons.work_outline,
+              icon: Icons.work_outline_rounded,
               text: employee.role,
+              theme: theme,
             ),
 
             const SizedBox(height: 8),
 
-            // Department chip
-            DepartmentChip(text: employee.dept),
+            // 🟣 Department
+            // 🟣 Department
+            ChipGroup(
+              items: employee.dept != null ? [employee.dept!] : ["N/A"],
+              textColor: theme.colorScheme.primary,
+            ),
 
             const SizedBox(height: 12),
 
-            // Email
+            // ✉ Email
             _employeeInfoRow(
               icon: Icons.email_outlined,
               text: employee.companyEmail ?? employee.personalEmail,
+              theme: theme,
             ),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
 
-            // Phone
+            // 📞 Phone
             _employeeInfoRow(
-              icon: Icons.phone_in_talk_outlined,
+              icon: Icons.phone_outlined,
               text: employee.phone,
+              theme: theme,
             ),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
 
-            // Join date
+            // 📅 Joined
             _employeeInfoRow(
               icon: Icons.calendar_today_outlined,
-              text: "Joined ${formatDate(employee.joinDate)}",
+              text: "Joined ${Formatters.formatDate(employee.joinDate)}",
+              theme: theme,
             ),
 
             const SizedBox(height: 16),
-            const Divider(height: 1),
+            Divider(color: theme.dividerColor),
             const SizedBox(height: 12),
 
-            // Bottom Buttons
+            // 🟦 Bottom Buttons
             Row(
               children: [
                 Expanded(
-                  child: SizedBox(
-                    height: 40,
-                    child: TextButton.icon(
-                      onPressed: onEdit,
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('Edit'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF4C4CFF),
-                        backgroundColor: const Color(0xFFF5F3FF),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                    child: SubmitButton(
+                  label: "Edit",
+                  onSubmit: onEdit,
+                )),
                 const SizedBox(width: 10),
-                SizedBox(
-                  height: 40,
-                  width: 44,
-                  child: TextButton(
-                    onPressed: onDelete,
-                    style: TextButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFF1F2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.delete_outline,
-                      size: 18,
-                      color: Color(0xFFEF4444),
-                    ),
-                  ),
-                ),
+                IconActionButton(
+                  icon: Icons.delete_outline,
+                  onPressed: onDelete,
+                  iconColor: Colors.red,
+                  background: const Color(0xFFFFF1F2),
+                )
               ],
             ),
           ],
@@ -163,47 +152,24 @@ class EmployeeCard extends StatelessWidget {
   }
 }
 
-Widget _employeeInfoRow({required IconData icon, required String? text}) {
+Widget _employeeInfoRow({
+  required IconData icon,
+  required String? text,
+  required ThemeData theme,
+}) {
   return Row(
     children: [
-      Icon(icon, size: 18, color: Colors.grey.shade600),
-      const SizedBox(width: 8),
+      Icon(icon, size: 18, color: theme.colorScheme.primary.withOpacity(0.7)),
+      const SizedBox(width: 10),
       Expanded(
         child: Text(
           text ?? "N/A",
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+          style: TextStyle(
+            fontSize: 14,
+            color: theme.colorScheme.onSurface.withOpacity(0.75),
+          ),
         ),
       ),
     ],
   );
-}
-
-class DepartmentChip extends StatelessWidget {
-  final String? text;
-
-  const DepartmentChip({super.key, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEDE9FE),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text ?? "No Dept",
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF7C3AED),
-        ),
-      ),
-    );
-  }
-}
-
-String formatDate(DateTime? date) {
-  if (date == null) return "N/A";
-  return "${date.day}/${date.month}/${date.year}";
 }

@@ -2,8 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:staffora/common/confirm_dilouge.dart';
 import 'package:staffora/common/dashboard_appbar.dart';
+import 'package:staffora/core/theme/app_colors.dart';
 import 'package:staffora/core/theme/theme_controller.dart';
+import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/presentation/employee/views/employee.dart';
 import 'package:staffora/presentation/leave/views/leave_dashboard.dart';
 import 'package:staffora/presentation/leave_approval.dart';
@@ -23,7 +26,6 @@ class _DashboardPageState extends State<DashboardScreen> {
     return MediaQuery.of(context).size.width > 900;
   }
 
-  /// ---------------------- SELECTED CONTENT ----------------------
   Widget selectedContent() {
     switch (selectedTab) {
       case 0:
@@ -36,7 +38,6 @@ class _DashboardPageState extends State<DashboardScreen> {
         return const DashboardUI(); // Profile
       case 4:
         return const AdminLeaveScreen(); // Prof
-
       case 5:
         return const AdminLeaveScreen();
       default:
@@ -45,34 +46,25 @@ class _DashboardPageState extends State<DashboardScreen> {
   }
 
   Future<void> _logout() async {
-    final confirm = await showDialog<bool>(
+    showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to logout?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              "Logout",
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      barrierDismissible: true,
+      builder: (_) => ConfirmDialog(
+        title: "Logout",
+        message: "Are you sure you want to logout?",
+        confirmText: "Logout",
+        cancelText: "Cancel",
+        confirmColor: AppColors.primary,
+        onConfirm: () async {
+          await FirebaseAuth.instance.signOut();
+          if (!mounted) return;
+          context.go('/auth/login');
+        },
+        onCancel: () {
+          context.pop(context);
+        },
       ),
     );
-
-    if (confirm != true) return;
-
-    // Perform logout
-    await FirebaseAuth.instance.signOut();
-
-    if (!mounted) return;
-    context.go('/auth/login');
   }
 
   @override
@@ -87,32 +79,9 @@ class _DashboardPageState extends State<DashboardScreen> {
         onLogout: _logout,
         themeController: Get.find<ThemeController>(),
         onSearch: (value) {
-          print("Search: $value");
-          // call your search method
+          AppLogger.debug("Search: $value");
         },
       ),
-      // appBar:
-
-      //  AppBar(
-      //   backgroundColor: Colors.white,
-      //   elevation: 0.5,
-      //   title: const Text("Dashboard"),
-      //   actions: [
-      //     IconButton(
-      //       icon: Icon(
-      //         Icons.logout,
-      //         color: Theme.of(context).colorScheme.error, // theme-based red
-      //       ),
-      //       onPressed: _logout,
-      //     ),
-      //     IconButton(
-      //       icon: Icon(Icons.brightness_6),
-      //       onPressed: () {
-      //         themeController.toggleTheme();
-      //       },
-      //     )
-      //   ],
-      // ),
 
       body: web
           ? Row(

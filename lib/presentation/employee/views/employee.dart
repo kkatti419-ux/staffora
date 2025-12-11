@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:staffora/common/primary_button.dart';
+import 'package:go_router/go_router.dart';
+import 'package:staffora/common/confirm_dilouge.dart';
+import 'package:staffora/common/submit_or_cancel.dart';
+import 'package:staffora/core/theme/app_colors.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
 import 'package:staffora/data/models/firebase_model/profile/profile_model.dart';
@@ -16,7 +19,6 @@ class EmployeeScreen extends StatefulWidget {
 
 class _EmployeeScreenState extends State<EmployeeScreen> {
   final FirebaseEmployeeService _employeeService = FirebaseEmployeeService();
-
   String? _currentUserId;
   bool _isAdmin = false;
   bool _loadingRole = true;
@@ -63,45 +65,23 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
     setState(() {}); // Refresh UI after save
   }
 
-  Future<void> _openAddDialog(Employee employee) async {
-    await showDialog(
-      context: context,
-      builder: (_) => EmployeeDialog(
-        isEdit: true,
-        employeeId: employee.userId, // OR employee.id based on your DB
-        initialEmployee: employee, // Prefill form
-      ),
-    );
-    setState(() {}); // Refresh UI after save
-  }
-
   Future<void> _deleteEmployee(Employee employee) async {
-    await showDialog(
+    showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Employee"),
-        content: Text(
-          "Are you sure you want to delete ${employee.firstname ?? 'this employee'}?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // close dialog
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context); // close the dialog
-
-              await _employeeService.deleteEmployee(employee.userId);
-
-              setState(() {}); // Refresh UI after delete
-            },
-            child: const Text(
-              "Delete",
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      barrierDismissible: true,
+      builder: (_) => ConfirmDialog(
+        title: "Delete Employee",
+        message: "Are you sure you want to Delete?",
+        confirmText: "Delete",
+        cancelText: "Cancel",
+        confirmColor: AppColors.primary,
+        onConfirm: () async {
+          await _employeeService.deleteEmployee(employee.userId);
+          setState(() {}); // Refresh UI after delete
+        },
+        onCancel: () {
+          context.pop(context);
+        },
       ),
     );
   }
@@ -142,11 +122,10 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                       ),
                     ),
                   ),
-                  if (_isAdmin)
-                    PrimaryButton(
-                      text: "Add",
-                      icon: Icons.add,
-                      onPressed: () {
+                  if (!_isAdmin)
+                    SubmitButton(
+                      label: "Add",
+                      onSubmit: () {
                         showDialog(
                           context: context,
                           builder: (_) => const EmployeeDialog(

@@ -159,21 +159,6 @@ class AdminLeaveScreen extends StatelessWidget {
                                         ),
 
                                         const SizedBox(width: 8),
-
-                                        // Undo → Set Back To Pending
-                                        // OutlinedButton(
-                                        //   onPressed: () => updateLeaveStatus(
-                                        //       doc.id, "pending"),
-                                        //   style: OutlinedButton.styleFrom(
-                                        //     side: BorderSide(
-                                        //         color: Colors.orange.shade700),
-                                        //   ),
-                                        //   child: Text(
-                                        //     "Undo",
-                                        //     style: TextStyle(
-                                        //         color: Colors.orange.shade700),
-                                        //   ),
-                                        // ),
                                       ],
                                     ),
                                   ),

@@ -129,32 +129,8 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
       // 🟢 Add new employee
       _employeeService.addEmployee(updated.toJson());
     }
-
     Navigator.pop(context, updated);
   }
-  // void _submit() {
-  //   if (!_formKey.currentState!.validate()) return;
-
-  //   final Employee updated = Employee(
-  //     userId: widget.employeeId ?? "",
-  //     uniqueId: widget.initialEmployee?.uniqueId ?? "",
-  //     firstname: _firstnameCtrl.text.trim(),
-  //     lastname: _lastnameCtrl.text.trim(),
-  //     companyEmail: _companyEmailCtrl.text.trim(),
-  //     personalEmail: _personalEmailCtrl.text.trim(),
-  //     phone: _phoneCtrl.text.trim(),
-  //     role: _roleCtrl.text.trim(),
-  //     dept: _selectedDept,
-  //     bloodGroup: _selectedBloodGroup,
-  //     joinDate: _joinDate,
-  //     address: _addressCtrl.text.trim(),
-  //     noOfLeaves: int.tryParse(_noLeaveCtrl.text) ?? 12,
-  //     profileImageUrl: widget.initialEmployee?.profileImageUrl,
-  //   );
-  //   _employeeService.updateEmployee(widget.employeeId ?? "", updated.toJson());
-
-  //   Navigator.pop(context, updated);
-  // }
 
   @override
   Widget build(BuildContext context) {

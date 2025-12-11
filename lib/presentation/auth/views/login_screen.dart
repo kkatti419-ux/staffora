@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:staffora/common/auth/reusable_auth_card.dart';
+import 'package:staffora/common/reusable_auth_card.dart';
 import 'package:staffora/common/custom_textinput_field.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/models/firebase_model/auth/login_model.dart';
