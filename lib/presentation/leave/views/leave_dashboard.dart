@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:staffora/presentation/leave/views/apply_leave.dart';
+import 'package:go_router/go_router.dart';
+import 'package:staffora/common/submit_or_cancel.dart';
+import 'package:staffora/core/utils/date_helper.dart';
 
 class DashboardUI extends StatelessWidget {
   const DashboardUI({super.key});
@@ -57,7 +59,8 @@ class DashboardUI extends StatelessWidget {
       // Add to recent list
       recent.add({
         "type": data["leaveType"],
-        "period": "${from.day}-${to.day} ${_month(from.month)} ${from.year}",
+        "period":
+            "${from.day}-${to.day} ${DateHelper.getMonth(from.month)} ${from.year}",
         "status": data["status"],
       });
     }
@@ -76,23 +79,23 @@ class DashboardUI extends StatelessWidget {
     };
   }
 
-  String _month(int m) {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec"
-    ];
-    return months[m - 1];
-  }
+  // String _month(int m) {
+  //   const months = [
+  //     "Jan",
+  //     "Feb",
+  //     "Mar",
+  //     "Apr",
+  //     "May",
+  //     "Jun",
+  //     "Jul",
+  //     "Aug",
+  //     "Sep",
+  //     "Oct",
+  //     "Nov",
+  //     "Dec"
+  //   ];
+  //   return months[m - 1];
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -129,14 +132,12 @@ class DashboardUI extends StatelessWidget {
             children: [
               const Text("Leave Dashboard",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => ApplyLeaveForm()));
+              SubmitButton(
+                label: "Apply Leave",
+                onSubmit: () {
+                  context.go('/leave/apply');
                 },
-                icon: const Icon(Icons.add),
-                label: const Text("Apply Leave"),
-              ),
+              )
             ],
           ),
 

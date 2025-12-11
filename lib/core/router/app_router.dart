@@ -3,6 +3,7 @@ import 'package:staffora/presentation/auth/views/forgot_password.dart';
 import 'package:staffora/presentation/auth/views/login_screen.dart';
 import 'package:staffora/presentation/auth/views/register_screen.dart';
 import 'package:staffora/presentation/dashboard/views/dashboard_screen.dart';
+import 'package:staffora/presentation/leave/views/apply_leave.dart';
 import 'package:staffora/presentation/product/views/create_product_view.dart';
 import 'package:staffora/presentation/users/views/getall_users_view.dart';
 import '../../presentation/product/views/product_success_view.dart';
@@ -37,6 +38,10 @@ class AppRouter {
       GoRoute(
         path: "/profile/user",
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: "/leave/apply",
+        builder: (context, state) => ApplyLeaveForm(),
       ),
     ],
   );

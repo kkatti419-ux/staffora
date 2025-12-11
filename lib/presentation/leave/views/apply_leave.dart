@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:staffora/common/cencel.dart';
 import 'package:staffora/common/date_picker.dart';
 import 'package:staffora/common/dropdown.dart';
-import 'package:staffora/common/submit.dart';
+import 'package:staffora/common/submit_or_cancel.dart';
 
 class ApplyLeaveForm extends StatefulWidget {
   @override
@@ -100,7 +99,7 @@ class _ApplyLeaveFormState extends State<ApplyLeaveForm> {
   Future<void> submitLeave() async {
     if (selectedLeaveType == null || fromDate == null || toDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please fill all required fields")),
+        const SnackBar(content: Text("Please fill all required fields")),
       );
       return;
     }
@@ -141,7 +140,7 @@ class _ApplyLeaveFormState extends State<ApplyLeaveForm> {
     if (isLoading) {
       return Scaffold(
         backgroundColor: Colors.grey.shade100,
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -155,7 +154,8 @@ class _ApplyLeaveFormState extends State<ApplyLeaveForm> {
             borderRadius: BorderRadius.circular(22),
             color: Colors.white,
             boxShadow: [
-              BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2)
+              const BoxShadow(
+                  color: Colors.black12, blurRadius: 10, spreadRadius: 2)
             ],
           ),
           child: SingleChildScrollView(
@@ -299,7 +299,9 @@ class _ApplyLeaveFormState extends State<ApplyLeaveForm> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CancelButton(),
+                          const SubmitButton(
+                            label: "Cancel Leave Request",
+                          ),
                           SubmitButton(onSubmit: submitLeave),
                         ],
                       ),

@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:staffora/common/dashboard_appbar.dart';
+import 'package:staffora/core/theme/theme_controller.dart';
 import 'package:staffora/presentation/employee/views/employee.dart';
 import 'package:staffora/presentation/leave/views/leave_dashboard.dart';
 import 'package:staffora/presentation/leave_approval.dart';
-import 'package:staffora/presentation/profile/views/profile_view.dart';
 import 'package:staffora/presentation/sallary/views/sallary.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -25,7 +27,7 @@ class _DashboardPageState extends State<DashboardScreen> {
   Widget selectedContent() {
     switch (selectedTab) {
       case 0:
-        return EmployeeScreen(); // Main Dashboard
+        return const EmployeeScreen(); // Main Dashboard
       case 1:
         return const DashboardUI(); // Leave Dashboard
       case 2:
@@ -69,39 +71,48 @@ class _DashboardPageState extends State<DashboardScreen> {
     // Perform logout
     await FirebaseAuth.instance.signOut();
 
-    // Navigate to login screen
     if (!mounted) return;
-    // context.go((route) => route.isFirst);
     context.go('/auth/login');
-    // Navigator.pushNamedAndRemoveUntil(
-    //   context,
-    //   '/login', // your login route
-    //   (route) => false,
-    // );
   }
 
   @override
   Widget build(BuildContext context) {
     final bool web = isWeb(context);
+    final ThemeController themeController = Get.find();
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      // appBar: AppBar(
-      //     backgroundColor: Colors.white, elevation: 0.5, title: Text("data")
-      //     // DashboardAppBar(),
-
-      //     ),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        title: const Text("Dashboard"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
-            onPressed: _logout,
-          ),
-        ],
+      appBar: DashboardAppBar(
+        title: "Dashboard",
+        onLogout: _logout,
+        themeController: Get.find<ThemeController>(),
+        onSearch: (value) {
+          print("Search: $value");
+          // call your search method
+        },
       ),
+      // appBar:
+
+      //  AppBar(
+      //   backgroundColor: Colors.white,
+      //   elevation: 0.5,
+      //   title: const Text("Dashboard"),
+      //   actions: [
+      //     IconButton(
+      //       icon: Icon(
+      //         Icons.logout,
+      //         color: Theme.of(context).colorScheme.error, // theme-based red
+      //       ),
+      //       onPressed: _logout,
+      //     ),
+      //     IconButton(
+      //       icon: Icon(Icons.brightness_6),
+      //       onPressed: () {
+      //         themeController.toggleTheme();
+      //       },
+      //     )
+      //   ],
+      // ),
 
       body: web
           ? Row(
@@ -166,24 +177,35 @@ class _DashboardPageState extends State<DashboardScreen> {
     bool active = selectedTab == index;
 
     return InkWell(
-      onTap: () => setState(() => selectedTab = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-        color: active ? Colors.blue.shade50 : Colors.transparent,
-        child: Row(
-          children: [
-            Icon(icon, color: active ? Colors.blue : Colors.grey),
-            const SizedBox(width: 10),
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: active ? Colors.blue : Colors.grey,
+        onTap: () => setState(() => selectedTab = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+
+          // background changes based on active & theme
+          color: active
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              : Colors.transparent,
+
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: active
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: active
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 }

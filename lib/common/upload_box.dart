@@ -12,7 +12,7 @@ class UploadBox extends StatelessWidget {
   final double borderRadius;
 
   const UploadBox({
-    Key? key,
+    super.key,
     this.height = 120,
     this.icon = Icons.upload_file,
     required this.title,
@@ -22,7 +22,7 @@ class UploadBox extends StatelessWidget {
     this.backgroundColor,
     this.iconColor,
     this.borderRadius = 12,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

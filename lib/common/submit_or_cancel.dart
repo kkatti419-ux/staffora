@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-class CancelButton extends StatelessWidget {
-  final VoidCallback? onPressed;
+class SubmitButton extends StatelessWidget {
+  final Function()? onSubmit;
   final String label;
   final double width;
+  final Color color;
 
-  const CancelButton({
+  const SubmitButton({
     super.key,
-    this.onPressed,
-    this.label = "Cancel",
-    this.width = 150,
+    this.onSubmit,
+    this.label = 'Submit',
+    this.width = 220,
+    this.color = Colors.blue,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      child: OutlinedButton(
-        onPressed: onPressed ?? () => Navigator.pop(context),
-        style: OutlinedButton.styleFrom(
+      child: ElevatedButton(
+        onPressed: onSubmit ?? () => context.pop(),
+        style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          side: BorderSide(color: Colors.grey.shade400),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
+          backgroundColor: color,
         ),
         child: Text(
           label,
           style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
