@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/firebase_services/firestore_service.dart';
 import 'package:staffora/data/models/firebase_model/profile/profile_model.dart';
 import 'package:staffora/data/models/firebase_model/employee/employee.dart';
@@ -212,7 +213,6 @@ class FirebaseEmployeeService {
       return grouped;
     });
   }
-
   // ========== DEPARTMENT CRUD OPERATIONS ==========
 
   final _deptDb = FirebaseFirestore.instance.collection('departments');
@@ -229,29 +229,61 @@ class FirebaseEmployeeService {
   /// Get all departments
   Future<List<DepartmentModel>> fetchAllDepartments() async {
     final snapshot =
-        await _deptDb.where('isActive', isEqualTo: true).orderBy('name').get();
+        await _deptDb.where('isActive', isEqualTo: true).get();
 
-    return snapshot.docs.map((doc) {
+    final list = snapshot.docs.map((doc) {
       return DepartmentModel.fromJson(
         doc.data(),
         documentId: doc.id,
       );
     }).toList();
+
+    // Sort in memory to avoid composite index requirement
+    list.sort((a, b) => a.name.compareTo(b.name));
+
+    return list;
   }
 
   /// Stream of all departments
   Stream<List<DepartmentModel>> departmentsStream() {
     return _deptDb
         .where('isActive', isEqualTo: true)
-        .orderBy('name')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => DepartmentModel.fromJson(
-                  doc.data(),
-                  documentId: doc.id,
-                ))
-            .toList());
+        .map((snapshot) {
+      final list = snapshot.docs.map((doc) {
+        return DepartmentModel.fromJson(
+          doc.data(),
+          documentId: doc.id,
+        );
+      }).toList();
+
+      // Sort in memory to avoid composite index requirement
+      list.sort((a, b) => a.name.compareTo(b.name));
+
+      AppLogger.debug('Departments count: ${list.length}');
+      return list;
+    });
   }
+
+  // Stream<List<DepartmentModel>> departmentsStream() {
+  //   return _deptDb
+  //       .where('isActive', isEqualTo: true)
+  //       .orderBy('name')
+  //       .snapshots()
+  //       .map((snapshot) {
+  //     final list = snapshot.docs
+  //         .map((doc) => DepartmentModel.fromJson(
+  //               doc.data(),
+  //               documentId: doc.id,
+  //             ))
+  //         .toList();
+
+  //     // 👇 PRINT LIST SIZE
+  //     AppLogger.debug('Departments count: ${list.length}');
+
+  //     return list;
+  //   });
+  // }
 
   /// Get department by ID
   Future<DepartmentModel?> fetchDepartmentById(String id) async {

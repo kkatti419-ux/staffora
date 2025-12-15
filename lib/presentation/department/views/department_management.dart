@@ -15,128 +15,159 @@ class DepartmentManagementScreen extends StatefulWidget {
 class _DepartmentManagementScreenState
     extends State<DepartmentManagementScreen> {
   final _firebaseEmployeeService = FirebaseEmployeeService();
+  final departemnets = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    AppLogger.debug('DepartmentManagementScreen initialized');
+    _firebaseEmployeeService.fetchAllDepartments().then((departments) {
+      AppLogger.debug('Fetched ${departments.length} departments on init');
+    }).catchError((e) {
+      AppLogger.error('Error fetching departments on init: $e');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Department Management',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF111827),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              StreamBuilder<List<DepartmentModel>>(
-                                stream: _firebaseEmployeeService
-                                    .departmentsStream(),
-                                builder: (context, snapshot) {
-                                  final count = snapshot.data?.length ?? 0;
-                                  return Text(
-                                    'Manage $count departments',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        PrimaryButton(
-                          text: 'Add Department',
-                          icon: Icons.add,
-                          onPressed: () => _openAddDialog(null),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Departments List
-                    StreamBuilder<List<DepartmentModel>>(
-                      stream: _firebaseEmployeeService.departmentsStream(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                                ConnectionState.waiting &&
-                            !snapshot.hasData) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 40),
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-
-                        final departments = snapshot.data ?? [];
-
-                        if (departments.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 40),
-                              child: Text(
-                                'No departments found. Create your first department!',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-
-                        return LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isSmall = constraints.maxWidth < 700;
-                            return Wrap(
-                              spacing: 24,
-                              runSpacing: 24,
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                for (var department in departments)
-                                  SizedBox(
-                                    width: isSmall
-                                        ? constraints.maxWidth
-                                        : (constraints.maxWidth - 48) / 3,
-                                    child: DepartmentCard(
-                                      department: department,
-                                      onEdit: () => _openAddDialog(department),
-                                      onDelete: () => _deleteDepartment(
-                                          department.id!, department.name),
-                                    ),
+                                const Text(
+                                  'Department Management',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF111827),
                                   ),
+                                ),
+                                const SizedBox(height: 4),
+                                StreamBuilder<List<DepartmentModel>>(
+                                  stream: _firebaseEmployeeService
+                                      .departmentsStream(),
+                                  builder: (context, snapshot) {
+                                    final count = snapshot.data?.length ?? 0;
+                                    return Text(
+                                      'Manage $count departments',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          PrimaryButton(
+                            text: 'Add Department',
+                            icon: Icons.add,
+                            onPressed: () => _openAddDialog(null),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Departments List
+                      StreamBuilder<List<DepartmentModel>>(
+                        stream: _firebaseEmployeeService.departmentsStream(),
+                        builder: (context, snapshot) {
+                          AppLogger.debug(
+                              'Connection: ${snapshot.connectionState}');
+                          AppLogger.debug('HasData: ${snapshot.hasData}');
+                          AppLogger.debug('HasError: ${snapshot.hasError}');
+                          AppLogger.debug('Error: ${snapshot.error}');
+                          if (snapshot.connectionState ==
+                                  ConnectionState.waiting &&
+                              !snapshot.hasData) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 40),
+                                child: CircularProgressIndicator(),
+                              ),
                             );
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                          }
+
+                          final departments = snapshot.data ?? [];
+                          AppLogger.debug(
+                              "========== Departments Fetched ==========");
+                          AppLogger.debug(departments.length.toString());
+                          AppLogger.debug(
+                            departments.map((e) => e.name).toList().toString(),
+                          );
+                          AppLogger.debug(
+                              "========== Departments Fetched ==========");
+
+                          if (departments.isEmpty) {
+                            AppLogger.debug('No departments found');
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 40),
+                                child: Text(
+                                  'No departments found. Create your first department!',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          return LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isSmall = constraints.maxWidth < 700;
+                              return Wrap(
+                                spacing: 24,
+                                runSpacing: 24,
+                                children: [
+                                  for (var department in departments)
+                                    SizedBox(
+                                      width: isSmall
+                                          ? constraints.maxWidth
+                                          : (constraints.maxWidth - 48) / 3,
+                                      child: DepartmentCard(
+                                        department: department,
+                                        onEdit: () =>
+                                            _openAddDialog(department),
+                                        onDelete: () => _deleteDepartment(
+                                            department.id!, department.name),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
