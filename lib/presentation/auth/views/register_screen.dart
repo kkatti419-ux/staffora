@@ -36,22 +36,29 @@ class _SignupScreenState extends State<SignupScreen> {
       password: _passwordCtrl.text,
     );
     try {
-      final success = await _authController.signUp(data);
+      final user = await _authController.signUp(data);
 
-      if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration failed")),
-        );
+      if (user == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Registration failed")),
+          );
+        }
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Registration successful!")),
-      );
-      context.go('/auth/login');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registration successful!")),
+        );
+        context.go('/auth/login');
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -77,6 +84,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   formKey: _formKey,
                   title: "Create Account",
                   subtitle: "Register a new employee",
+                  loading: _loading,
                   fields: [
                     const Text("Username",
                         style: TextStyle(

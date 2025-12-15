@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/models/firebase_model/employee/employee.dart';
+import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
 
 // ================= MODEL & HELPERS =================
 
@@ -34,6 +36,7 @@ class EmployeeScreen extends StatefulWidget {
 
 class _EmployeeScreenState extends State<EmployeeScreen> {
   final _employeeService = EmployeeService();
+  final _firebaseEmployeeService = FirebaseEmployeeService();
   String? _currentUserRole;
   String? _currentUserId;
   bool _isLoading = true;
@@ -66,7 +69,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
       final data = userDoc.data(); // Map<String, dynamic>?
       AppLogger.debug('User Data: $data');
 
-      AppLogger.debug(EmployeeModelClass.fromMap(data!) as String);
+      // AppLogger.debug('Employee parsed: ${EmployeeModelClass.fromMap(data!)}');
 
       if (userDoc.exists) {
         final data = userDoc.data();
@@ -135,111 +138,213 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                   builder: (context, constraints) {
                     final isSmall = constraints.maxWidth < 700;
 
-                    return StreamBuilder<List<EmployeeModelClass>>(
-                      stream: _isAdmin
-                          ? _employeeService.employeesStream()
-                          : _employeeService
-                              .employeeStreamByUserId(_currentUserId!),
-                      builder: (context, snapshot) {
-                        final employees = snapshot.data ?? [];
+                    // Show grouped view for admin, regular view for users
+                    if (_isAdmin) {
+                      return StreamBuilder<Map<String, Map<String, dynamic>>>(
+                        stream: _firebaseEmployeeService
+                            .employeesGroupedByDepartmentStream(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                                  ConnectionState.waiting &&
+                              !snapshot.hasData) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 40),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ==== HEADER (same UI, now using Firestore count) ====
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _isAdmin
-                                            ? 'All Employees'
-                                            : 'My Profile',
-                                        style: const TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF111827),
+                          final groupedData = snapshot.data ?? {};
+                          final departments = groupedData.keys.toList()..sort();
+
+                          int totalEmployees = groupedData.values.fold(
+                              0,
+                              (sum, dept) =>
+                                  sum + (dept['employees'] as List).length);
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ==== HEADER ====
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Employees by Department',
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF111827),
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _isAdmin
-                                            ? 'Manage your team of ${employees.length} employees'
-                                            : 'View your employee details',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade600,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${departments.length} departments • $totalEmployees employees',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey.shade600,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                if (_isAdmin)
+                                  const SizedBox(width: 12),
                                   PrimaryButton(
-                                    text: 'Add ',
+                                    text: 'Manage Departments',
+                                    icon: Icons.business,
+                                    onPressed: () {
+                                      if (context.mounted) {
+                                        context.go('/department/management');
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(width: 12),
+                                  PrimaryButton(
+                                    text: 'Add Employee',
                                     icon: Icons.add,
                                     onPressed: _openAddDialog,
                                   ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-
-                            // ==== BODY (same Wrap UI driven by Firestore) ====
-                            if (snapshot.connectionState ==
-                                    ConnectionState.waiting &&
-                                employees.isEmpty)
-                              const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.only(top: 40),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
-                            else if (employees.isEmpty)
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 40),
-                                  child: Text(
-                                    _isAdmin
-                                        ? 'No Employees'
-                                        : 'No employee record found for your account',
-                                  ),
-                                ),
-                              )
-                            else
-                              Wrap(
-                                spacing: 24,
-                                runSpacing: 24,
-                                children: [
-                                  for (int i = 0; i < employees.length; i++)
-                                    SizedBox(
-                                      width: isSmall
-                                          ? constraints.maxWidth
-                                          : (constraints.maxWidth - 48) / 3,
-                                      child: EmployeeCard(
-                                        employee: employees[i],
-                                        isAdmin: _isAdmin,
-                                        onEdit: () =>
-                                            _openEditDialog(employees[i]),
-                                        onDelete: () async {
-                                          final id = employees[i].id;
-                                          if (id != null && id.isNotEmpty) {
-                                            await _employeeService
-                                                .deleteEmployee(id);
-                                          }
-                                        },
-                                      ),
-                                    ),
                                 ],
                               ),
-                          ],
-                        );
-                      },
-                    );
+                              const SizedBox(height: 24),
+
+                              // ==== GROUPED BY DEPARTMENT ====
+                              if (groupedData.isEmpty)
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(top: 40),
+                                    child: Text('No employees found'),
+                                  ),
+                                )
+                              else
+                                ...departments.map((department) {
+                                  final deptData = groupedData[department]!;
+                                  final admin =
+                                      deptData['admin'] as EmployeeModelClass?;
+                                  final employees = deptData['employees']
+                                      as List<EmployeeModelClass>;
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 32),
+                                    child: DepartmentSection(
+                                      department: department,
+                                      admin: admin,
+                                      employees: employees,
+                                      isAdmin: _isAdmin,
+                                      isSmall: isSmall,
+                                      maxWidth: constraints.maxWidth,
+                                      onEditEmployee: _openEditDialog,
+                                      onDeleteEmployee: (id) async {
+                                        if (id != null && id.isNotEmpty) {
+                                          await _employeeService
+                                              .deleteEmployee(id);
+                                        }
+                                      },
+                                    ),
+                                  );
+                                }).toList(),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      // Regular user view
+                      return StreamBuilder<List<EmployeeModelClass>>(
+                        stream: _employeeService
+                            .employeeStreamByUserId(_currentUserId!),
+                        builder: (context, snapshot) {
+                          final employees = snapshot.data ?? [];
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ==== HEADER ====
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'My Profile',
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF111827),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'View your employee details',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // ==== BODY ====
+                              if (snapshot.connectionState ==
+                                      ConnectionState.waiting &&
+                                  employees.isEmpty)
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(top: 40),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              else if (employees.isEmpty)
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(top: 40),
+                                    child: Text(
+                                        'No employee record found for your account'),
+                                  ),
+                                )
+                              else
+                                Wrap(
+                                  spacing: 24,
+                                  runSpacing: 24,
+                                  children: [
+                                    for (int i = 0; i < employees.length; i++)
+                                      SizedBox(
+                                        width: isSmall
+                                            ? constraints.maxWidth
+                                            : (constraints.maxWidth - 48) / 3,
+                                        child: EmployeeCard(
+                                          employee: employees[i],
+                                          isAdmin: _isAdmin,
+                                          onEdit: () =>
+                                              _openEditDialog(employees[i]),
+                                          onDelete: () async {
+                                            final id = employees[i].id;
+                                            if (id != null && id.isNotEmpty) {
+                                              await _employeeService
+                                                  .deleteEmployee(id);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                            ],
+                          );
+                        },
+                      );
+                    }
                   },
                 ),
               ),
@@ -322,6 +427,208 @@ class DepartmentChip extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
+    );
+  }
+}
+
+// ================= DEPARTMENT SECTION (Admin View) =================
+
+class DepartmentSection extends StatelessWidget {
+  final String department;
+  final EmployeeModelClass? admin;
+  final List<EmployeeModelClass> employees;
+  final bool isAdmin;
+  final bool isSmall;
+  final double maxWidth;
+  final Function(EmployeeModelClass) onEditEmployee;
+  final Function(String?) onDeleteEmployee;
+
+  const DepartmentSection({
+    super.key,
+    required this.department,
+    required this.admin,
+    required this.employees,
+    required this.isAdmin,
+    required this.isSmall,
+    required this.maxWidth,
+    required this.onEditEmployee,
+    required this.onDeleteEmployee,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final deptColor = departmentColor(department);
+    final deptBg = deptColor.withOpacity(0.1);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Department Header with Admin
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: deptBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: deptColor.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: deptColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      department,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${employees.length} ${employees.length == 1 ? 'employee' : 'employees'}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              if (admin != null) ...[
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.admin_panel_settings,
+                      color: deptColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Department Admin:',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: deptColor,
+                            child: Text(
+                              admin!.initials,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  admin!.name,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF111827),
+                                  ),
+                                ),
+                                Text(
+                                  admin!.email,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'No admin assigned to this department',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Employees Grid
+        if (employees.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                'No employees in this department',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          )
+        else
+          Wrap(
+            spacing: 24,
+            runSpacing: 24,
+            children: [
+              for (int i = 0; i < employees.length; i++)
+                SizedBox(
+                  width: isSmall ? maxWidth : (maxWidth - 48) / 3,
+                  child: EmployeeCard(
+                    employee: employees[i],
+                    isAdmin: isAdmin,
+                    onEdit: () => onEditEmployee(employees[i]),
+                    onDelete: () => onDeleteEmployee(employees[i].id),
+                  ),
+                ),
+            ],
+          ),
+      ],
     );
   }
 }

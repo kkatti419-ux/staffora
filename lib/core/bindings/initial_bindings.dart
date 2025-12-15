@@ -41,21 +41,20 @@ class InitialBindings extends Bindings {
 
     // ========== OTHER GLOBAL CONTROLLERS ==========
     Get.put(ThemeController(), permanent: true);
-    // Get.put(AuthController(), permanent: true);
 
-    // 0--------
+    // ========== AUTH DEPENDENCIES ==========
     // 1️⃣ Firebase Auth Service
     Get.lazyPut(() => FirebaseAuthService());
 
-// 2️⃣ Auth Repository
+    // 2️⃣ Auth Repository (if needed for future use)
     Get.lazyPut<IAuthRepository>(
       () => AuthRepository(service: Get.find<FirebaseAuthService>()),
     );
 
-// 3️⃣ Auth Usecase
+    // 3️⃣ Auth Usecase (if needed for future use)
     Get.lazyPut(() => AuthUsecase(repository: Get.find<IAuthRepository>()));
 
-// 4️⃣ Auth Controller
-    Get.put(AuthController(usecase: Get.find<AuthUsecase>()), permanent: true);
+    // 4️⃣ Auth Controller (uses FirebaseAuthService directly)
+    Get.put(AuthController(), permanent: true);
   }
 }

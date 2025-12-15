@@ -25,9 +25,16 @@ class AuthController extends GetxController {
   // ---------------------------
   Future<User?> signIn(LoginModel loginModel) async {
     try {
-      // Firebase login using service
-      UserCredential credential = await _authService.signin(loginModel);
-      User? user = credential.user;
+      // Firebase login using service (returns bool)
+      final success = await _authService.signin(loginModel);
+
+      if (!success) {
+        AppLogger.error("Sign-in failed");
+        return null;
+      }
+
+      // Get current user from FirebaseAuth
+      final user = _authService.currentUser;
 
       // Assign reactive user
       currentUser.value = user;
@@ -69,9 +76,16 @@ class AuthController extends GetxController {
   // ---------------------------
   Future<User?> signUp(RegisterModel registerModel) async {
     try {
-      // Call signup service
-      UserCredential credential = await _authService.signup(registerModel);
-      User? user = credential.user;
+      // Call signup service (returns bool)
+      final success = await _authService.signup(registerModel);
+
+      if (!success) {
+        AppLogger.error("Sign-up failed");
+        return null;
+      }
+
+      // Get current user from FirebaseAuth
+      final user = _authService.currentUser;
 
       // Update reactive user
       currentUser.value = user;

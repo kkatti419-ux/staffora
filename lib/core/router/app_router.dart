@@ -6,6 +6,7 @@ import 'package:staffora/presentation/dashboard/views/dashboard_screen.dart';
 import 'package:staffora/presentation/leave/views/apply_leave.dart';
 import 'package:staffora/presentation/product/views/create_product_view.dart';
 import 'package:staffora/presentation/users/views/getall_users_view.dart';
+import 'package:staffora/presentation/department/views/department_management.dart';
 import '../../presentation/product/views/product_success_view.dart';
 
 class AppRouter {
@@ -42,6 +43,10 @@ class AppRouter {
       GoRoute(
         path: "/leave/apply",
         builder: (context, state) => ApplyLeaveForm(),
+      ),
+      GoRoute(
+        path: "/department/management",
+        builder: (context, state) => const DepartmentManagementScreen(),
       ),
     ],
   );
