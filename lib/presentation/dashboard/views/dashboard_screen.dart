@@ -73,7 +73,9 @@ class _DashboardPageState extends State<DashboardScreen> {
     final ThemeController themeController = Get.find();
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      //  AppColors.primary,
+      //  Colors.grey.shade100,
       appBar: DashboardAppBar(
         title: "Dashboard",
         onLogout: _logout,
@@ -89,7 +91,9 @@ class _DashboardPageState extends State<DashboardScreen> {
                 // LEFT SIDEBAR (WEB)
                 Container(
                   width: 230,
-                  color: Colors.white,
+                  color: Theme.of(context).scaffoldBackgroundColor,
+
+                  //  Colors.white,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -122,6 +126,7 @@ class _DashboardPageState extends State<DashboardScreen> {
       bottomNavigationBar: web
           ? null
           : BottomNavigationBar(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               currentIndex: selectedTab,
               onTap: (i) => setState(() => selectedTab = i),
               type: BottomNavigationBarType.fixed,

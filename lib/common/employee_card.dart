@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:staffora/common/employee_card2.dart';
 import 'package:staffora/common/submit_or_cancel.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
 import 'package:staffora/data/models/firebase_model/profile/profile_model.dart';
 import 'package:staffora/presentation/employee/views/addor_edit_employee.dart';
-import 'package:staffora/presentation/employee/views/employee_card.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EmployeeScreen extends StatefulWidget {
   const EmployeeScreen({super.key});
@@ -112,15 +112,19 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                       child: ListView.builder(
                         itemCount: employees.length,
                         itemBuilder: (context, i) {
-                          return EmployeeCard(
-                            employee: employees[i],
-                            isAdmin: _isAdmin,
-                            onEdit: () {},
-                            onDelete: () {},
+                          return Padding(
+                            padding:
+                                const EdgeInsets.all(12), // Space between cards
+                            child: EmployeeCard(
+                              employee: employees[i],
+                              isAdmin: _isAdmin,
+                              onEdit: () {},
+                              onDelete: () {},
+                            ),
                           );
                         },
                       ),
-                    ),
+                    )
             ],
           ),
         );
