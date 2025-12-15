@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:staffora/common/date_picker.dart';
 import 'package:staffora/common/dropdown.dart';
+import 'package:staffora/common/primary_button.dart';
 import 'package:staffora/common/submit_or_cancel.dart';
 
 class ApplyLeaveForm extends StatefulWidget {
@@ -299,10 +300,10 @@ class _ApplyLeaveFormState extends State<ApplyLeaveForm> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const SubmitButton(
-                            label: "Cancel Leave Request",
+                          PrimaryButton(
+                            text: "Cancel Leave Request",
+                            onPressed: submitLeave,
                           ),
-                          SubmitButton(onSubmit: submitLeave),
                         ],
                       ),
                     ],

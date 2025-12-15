@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:staffora/common/app_info_card.dart';
+import 'package:staffora/common/info_item.dart';
+import 'package:staffora/common/primary_button.dart';
+import 'package:staffora/core/utils/formatters.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/models/firebase_model/department/department_model.dart';
 import 'package:staffora/data/models/firebase_model/employee/employee.dart';
@@ -146,13 +150,34 @@ class _DepartmentManagementScreenState
                                       width: isSmall
                                           ? constraints.maxWidth
                                           : (constraints.maxWidth - 48) / 3,
-                                      child: DepartmentCard(
-                                        department: department,
-                                        onEdit: () =>
-                                            _openAddDialog(department),
-                                        onDelete: () => _deleteDepartment(
-                                            department.id!, department.name),
-                                      ),
+                                      child: AppInfoCard(
+                                          title: department.name,
+                                          subtitle: department.adminName != null
+                                              ? 'Admin: ${department.adminName}'
+                                              : 'No admin assigned',
+                                          avatarText: department
+                                              .name.characters.first
+                                              .toUpperCase(),
+                                          avatarColor: const Color(0xFF2563EB),
+                                          infoItems: [
+                                            if (department.description != null)
+                                              InfoItem(
+                                                icon:
+                                                    Icons.description_outlined,
+                                                text: department.description!,
+                                              ),
+                                            InfoItem(
+                                              icon:
+                                                  Icons.calendar_today_outlined,
+                                              text:
+                                                  'Created ${Formatters.formatDate(department.createdAt)}',
+                                            ),
+                                          ],
+                                          showActions: true,
+                                          onEdit: () =>
+                                              _openAddDialog(department),
+                                          onDelete: () => _deleteDepartment(
+                                              department.id!, department.name)),
                                     ),
                                 ],
                               );
@@ -231,210 +256,6 @@ class _DepartmentManagementScreenState
   }
 }
 
-// ================= DEPARTMENT CARD =================
-
-class DepartmentCard extends StatelessWidget {
-  final DepartmentModel department;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const DepartmentCard({
-    super.key,
-    required this.department,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  Color _getDepartmentColor(String name) {
-    switch (name) {
-      case 'Engineering':
-        return const Color(0xFF2563EB);
-      case 'Marketing':
-        return const Color(0xFFEC4899);
-      case 'Human Resources':
-        return const Color(0xFF22C55E);
-      case 'Sales':
-        return const Color(0xFFF97316);
-      default:
-        return const Color(0xFF6B7280);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final deptColor = _getDepartmentColor(department.name);
-    final deptBg = deptColor.withOpacity(0.1);
-
-    return Material(
-      elevation: 6,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Department Name
-            Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: deptBg,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    department.name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: deptColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Description
-            if (department.description != null &&
-                department.description!.isNotEmpty) ...[
-              Text(
-                department.description!,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade700,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // Admin Info
-            if (department.adminName != null) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.admin_panel_settings,
-                    size: 16,
-                    color: deptColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Admin: ${department.adminName}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ] else ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: Colors.grey.shade500,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'No admin assigned',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade500,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // Created Date
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today_outlined,
-                  size: 14,
-                  color: Colors.grey.shade500,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Created: ${_formatDate(department.createdAt)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Actions
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 40,
-                    child: TextButton.icon(
-                      onPressed: onEdit,
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('Edit'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF4C4CFF),
-                        backgroundColor: const Color(0xFFF5F3FF),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  height: 40,
-                  width: 44,
-                  child: TextButton(
-                    onPressed: onDelete,
-                    style: TextButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFF1F2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.delete_outline,
-                      size: 18,
-                      color: Color(0xFFEF4444),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-}
-
-// ================= DEPARTMENT DIALOG =================
-
 class DepartmentDialog extends StatefulWidget {
   final DepartmentModel? department;
   final FirebaseEmployeeService firebaseEmployeeService;
@@ -472,8 +293,16 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
   Future<void> _loadAdmins() async {
     try {
       final admins = await widget.firebaseEmployeeService.fetchAllAdmins();
+
       setState(() {
         _admins = admins;
+
+        // 🔑 FIX: reset value if it doesn't exist
+        if (_selectedAdminId != null &&
+            !_admins.any((a) => a.id == _selectedAdminId)) {
+          _selectedAdminId = null;
+          _selectedAdminName = null;
+        }
       });
     } catch (e) {
       AppLogger.error('Error loading admins: $e');
@@ -655,16 +484,13 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
                 DropdownButtonFormField<String>(
                   value: _selectedAdminId,
                   decoration: _inputDecoration('Select admin (optional)'),
-                  items: [
-                    const DropdownMenuItem<String>(
-                      value: null,
-                      child: Text('No admin assigned'),
-                    ),
-                    ..._admins.map((admin) => DropdownMenuItem<String>(
-                          value: admin.id,
-                          child: Text('${admin.name} (${admin.email})'),
-                        )),
-                  ],
+                  hint: const Text('No admin assigned'),
+                  items: _admins.map((admin) {
+                    return DropdownMenuItem<String>(
+                      value: admin.id,
+                      child: Text('${admin.name} (${admin.email})'),
+                    );
+                  }).toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedAdminId = value;
@@ -677,6 +503,7 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
                     });
                   },
                 ),
+
                 const SizedBox(height: 24),
 
                 // Buttons
@@ -734,48 +561,6 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ================= REUSABLE WIDGETS =================
-
-class PrimaryButton extends StatelessWidget {
-  final String text;
-  final IconData? icon;
-  final VoidCallback onPressed;
-
-  const PrimaryButton({
-    super.key,
-    required this.text,
-    required this.onPressed,
-    this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: icon != null ? Icon(icon, size: 18) : const SizedBox.shrink(),
-        label: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 14.5,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4C4CFF),
-          foregroundColor: Colors.white,
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 18),
         ),
       ),
     );

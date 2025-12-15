@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:staffora/common/primary_button.dart';
 import 'package:staffora/common/submit_or_cancel.dart';
 
 class ConfirmDialog extends StatelessWidget {
@@ -81,19 +82,19 @@ class ConfirmDialog extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    SubmitButton(
-                      label: cancelText,
+                    PrimaryButton(
+                      text: cancelText,
                       color: cancelColor ?? theme.colorScheme.outlineVariant,
-                      onSubmit: () {
+                      onPressed: () {
                         Navigator.pop(context);
                         onCancel?.call();
                       },
                     ),
                     const SizedBox(width: 12),
-                    SubmitButton(
-                      label: confirmText,
+                    PrimaryButton(
+                      text: confirmText,
                       color: confirmColor ?? theme.colorScheme.primary,
-                      onSubmit: () {
+                      onPressed: () {
                         Navigator.pop(context);
                         onConfirm();
                       },

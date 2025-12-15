@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:staffora/common/reusable_auth_card.dart';
 import 'package:staffora/common/custom_textinput_field.dart';
+import 'package:staffora/core/constants/app_strings.dart';
 import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/models/firebase_model/auth/login_model.dart';
 import 'package:staffora/presentation/auth/controllers/auth_controller.dart';
@@ -17,7 +18,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _emailCtrl = TextEditingController(text: "aa@gmail.com");
+  final _emailCtrl = TextEditingController(text: "admin@mailinator.com");
   final _passwordCtrl = TextEditingController(text: "121212");
 
   final AuthController _authController = Get.find<AuthController>();
@@ -86,26 +87,28 @@ class _LoginScreenState extends State<LoginScreen> {
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: ReusableAuthCard(
                   formKey: _formKey,
-                  title: "Employee Management",
-                  subtitle: "Sign in to access your account",
+                  title: AppStrings.stafdforaEmployeeLofin,
+                  subtitle: AppStrings.signInToYourAccount,
                   fields: [
-                    const Text("Email Address",
+                    const Text(AppStrings.email,
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
                     CustomInputField(
-                      hintText: "Enter your email",
+                      hintText: AppStrings.enterYourEmail,
                       icon: Icons.email_outlined,
                       controller: _emailCtrl,
-                      validator: (v) => v!.isEmpty ? "Enter email" : null,
+                      validator: (v) =>
+                          v!.isEmpty ? AppStrings.enterYourEmail : null,
                     ),
                     const SizedBox(height: 18),
-                    const Text("Password",
+                    const Text(AppStrings.password,
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
                     CustomInputField(
-                      hintText: "Enter your password",
+                      hintText: AppStrings.enterYourPassword,
+                      //  "Enter your password",
                       icon: Icons.lock_outline,
                       obscureText: true,
                       controller: _passwordCtrl,

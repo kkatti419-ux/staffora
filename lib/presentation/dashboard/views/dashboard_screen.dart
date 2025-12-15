@@ -7,7 +7,7 @@ import 'package:staffora/common/dashboard_appbar.dart';
 import 'package:staffora/core/theme/app_colors.dart';
 import 'package:staffora/core/theme/theme_controller.dart';
 import 'package:staffora/core/utils/logger.dart';
-import 'package:staffora/presentation/employee/views/employee.dart';
+import 'package:staffora/presentation/employee/views/all_employees.dart';
 import 'package:staffora/presentation/leave/views/leave_dashboard.dart';
 import 'package:staffora/presentation/leave_approval.dart';
 import 'package:staffora/presentation/sallary/views/sallary.dart';
@@ -74,8 +74,6 @@ class _DashboardPageState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      //  AppColors.primary,
-      //  Colors.grey.shade100,
       appBar: DashboardAppBar(
         title: "Dashboard",
         onLogout: _logout,

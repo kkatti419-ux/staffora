@@ -10,6 +10,35 @@ class FirebaseEmployeeService {
 
   final _db = FirebaseFirestore.instance.collection('employees');
 
+  Stream<List<EmployeeModelClass>> employeeStreamByUserId(String userId) {
+    return
+        //  FirebaseFirestore.instance
+        // .collection('employees')
+        _db.where('userId', isEqualTo: userId).snapshots().map(
+              (snapshot) => snapshot.docs
+                  .map(
+                    (doc) => EmployeeModelClass.fromMap(
+                      doc.data(),
+                      documentId: doc.id,
+                    ),
+                  )
+                  .toList(),
+            );
+  }
+
+  Stream<List<EmployeeModelClass>> employeeStream() {
+    return _db.snapshots().map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => EmployeeModelClass.fromMap(
+                  doc.data(),
+                  documentId: doc.id,
+                ),
+              )
+              .toList(),
+        );
+  }
+
   // Fetch all employees
   Future<List<Employee>> fetchAllEmployees() async {
     final snapshot = await _db.get();
@@ -34,15 +63,18 @@ class FirebaseEmployeeService {
 
     return [current]; // normal user
   }
+  // Stream of employees by userId
+
+  //------
 
   // Update employee
   Future<void> updateEmployee(String userId, Map<String, dynamic> data) async {
     await _db.doc(userId).update(data);
   }
 
-  Future<void> addEmployee(Map<String, dynamic> data) async {
+  Future<void> addEmployee(EmployeeModelClass data) async {
     final doc = _firestoreService.collection("employees").doc();
-    data["userId"] = doc.id; // auto-generate ID
+    data.id = doc.id; // auto-generate ID
     await doc.set(data);
   }
 
@@ -58,7 +90,7 @@ class FirebaseEmployeeService {
     try {
       final snapshot = await _db
           .where('role', isEqualTo: 'admin')
-          .orderBy('department')
+          // .orderBy('department')
           .get();
 
       return snapshot.docs.map((doc) {
@@ -228,8 +260,7 @@ class FirebaseEmployeeService {
 
   /// Get all departments
   Future<List<DepartmentModel>> fetchAllDepartments() async {
-    final snapshot =
-        await _deptDb.where('isActive', isEqualTo: true).get();
+    final snapshot = await _deptDb.where('isActive', isEqualTo: true).get();
 
     final list = snapshot.docs.map((doc) {
       return DepartmentModel.fromJson(
