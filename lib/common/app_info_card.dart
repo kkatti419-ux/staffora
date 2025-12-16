@@ -110,32 +110,36 @@ class AppInfoCard extends StatelessWidget {
               const SizedBox(height: 10),
               footer!,
             ],
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
 
-            // Actions
-            if (showActions) ...[
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 40,
-                      child: TextButton.icon(
-                        onPressed: onEdit,
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: const Text('Edit'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFF4C4CFF),
-                          backgroundColor: const Color(0xFFF5F3FF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+            Row(
+              children: [
+                // ✅ EDIT (always visible)
+                Expanded(
+                  child: SizedBox(
+                    height: 40,
+                    child: TextButton.icon(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('Edit'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF4C4CFF),
+                        backgroundColor: const Color(0xFFF5F3FF),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                ),
+
+                // spacing only if delete is shown
+                if (showActions) const SizedBox(width: 10),
+
+                // ❌ DELETE (conditional)
+                if (showActions)
                   SizedBox(
                     height: 40,
                     width: 44,
@@ -154,9 +158,10 @@ class AppInfoCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+              ],
+            ),
+
+            // Actions
           ],
         ),
       ),

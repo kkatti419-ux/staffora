@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:staffora/common/reusable_auth_card.dart';
 import 'package:staffora/common/custom_textinput_field.dart';
 import 'package:staffora/core/constants/app_strings.dart';
-import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/models/firebase_model/auth/login_model.dart';
 import 'package:staffora/presentation/auth/controllers/auth_controller.dart';
 
@@ -18,7 +17,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _emailCtrl = TextEditingController(text: "admin@mailinator.com");
+  final _emailCtrl = TextEditingController(text: "kartik@gmail.com");
   final _passwordCtrl = TextEditingController(text: "121212");
 
   final AuthController _authController = Get.find<AuthController>();
@@ -49,7 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
         context.go('/profile/user');
       }
     } catch (e, stackTrace) {
-      // AppLogger.error("Login failed", error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Login failed: ${e.toString()}")),
@@ -131,9 +129,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                   primaryButtonText: "Sign In",
                   onPrimaryButtonTap: handleLogin,
-                  footerText: "Don’t have an account?",
-                  footerButtonText: "Sign Up",
-                  footerRoute: "/auth/register",
+                  // footerText: "Don’t have an account?",
+                  // footerButtonText: "Sign Up",
+                  // footerRoute: null,
+                  // "/auth/register",
                   loading: _loading,
                 )),
           ),

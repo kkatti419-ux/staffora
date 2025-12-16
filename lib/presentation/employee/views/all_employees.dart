@@ -7,7 +7,6 @@ import 'package:staffora/common/emp_dilouge_state.dart';
 import 'package:staffora/common/info_item.dart';
 import 'package:staffora/common/primary_button.dart';
 import 'package:staffora/core/utils/formatters.dart';
-import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
 import 'package:staffora/data/models/firebase_model/employee/employee.dart';
 
@@ -78,7 +77,8 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
     await showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const EmployeeDialog(
+      builder: (_) => EmployeeDialog(
+        currentUserRole: _isAdmin ? UserRole.admin : UserRole.employee,
         isEdit: false,
         employeeId: null,
         initialEmployee: null,
@@ -91,6 +91,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => EmployeeDialog(
+        currentUserRole: _isAdmin ? UserRole.admin : UserRole.employee,
         isEdit: true,
         employeeId: employee.id,
         initialEmployee: employee,
@@ -98,7 +99,6 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
     );
   }
 
-  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -162,26 +162,29 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                       ),
 
                     const SizedBox(width: 12),
-
-                    // Add employee (non-admin only)
                     if (_isAdmin)
-                      PrimaryButton(
-                        text: 'Add Employee',
-                        icon: Icons.add,
-                        onPressed: _openAddDialog,
-                      ),
-
-                    const SizedBox(width: 12),
-
-                    PrimaryButton(
-                      text: 'Manage Departments',
-                      icon: Icons.business,
-                      onPressed: () {
-                        if (context.mounted) {
-                          context.go('/department/management');
-                        }
-                      },
-                    ),
+                      Row(
+                        children: [
+                          PrimaryButton(
+                              text: 'Create Employee',
+                              icon: Icons.add,
+                              onPressed: () {
+                                context.go('/auth/create_account');
+                              }
+                              //  _openAddDialog,
+                              ),
+                          const SizedBox(width: 12),
+                          PrimaryButton(
+                            text: 'Manage Departments',
+                            icon: Icons.business,
+                            onPressed: () {
+                              if (context.mounted) {
+                                context.go('/department/management');
+                              }
+                            },
+                          ),
+                        ],
+                      )
                   ],
                 ),
 

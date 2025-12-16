@@ -69,12 +69,12 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF7B5CFF), Color(0xFFFF6AD5)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+            // gradient: LinearGradient(
+            //   colors: [Color(0xFF7B5CFF), Color(0xFFFF6AD5)],
+            //   begin: Alignment.topLeft,
+            //   end: Alignment.bottomRight,
+            // ),
+            ),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -83,7 +83,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: ReusableAuthCard(
                   formKey: _formKey,
                   title: "Create Account",
-                  subtitle: "Register a new employee",
+                  subtitle: "Add a new employee to the system",
                   loading: _loading,
                   fields: [
                     const Text("Username",
@@ -131,10 +131,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       validator: (v) => v!.isEmpty ? "Enter password" : null,
                     ),
                   ],
-                  primaryButtonText: "Sign Up",
+                  primaryButtonText: "Create Employee Account",
                   onPrimaryButtonTap: register,
-                  footerText: "Already have an account?",
-                  footerButtonText: "Sign In",
+                  // footerText: "Already have an account?",
+                  // footerButtonText: "Sign In",
                   footerRoute: "/auth/login",
                 )),
           ),
