@@ -68,8 +68,8 @@ class FirebaseEmployeeService {
   //------
 
   // Update employee
-  Future<void> updateEmployee(String userId, Map<String, dynamic> data) async {
-    await _db.doc(userId).update(data);
+  Future<void> updateEmployee(String userId, EmployeeModelClass data) async {
+    await _db.doc(userId).update(data.toMap());
   }
 
   // Future<void> addEmployee(EmployeeModelClass data) async {
