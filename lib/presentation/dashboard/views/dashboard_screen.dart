@@ -31,14 +31,12 @@ class _DashboardPageState extends State<DashboardScreen> {
       case 0:
         return const EmployeeScreen(); // Main Dashboard
       case 1:
-        return const DashboardUI(); // Leave Dashboard
+        return const LeaveDashboard(); // Leave Dashboard
       case 2:
         return const SalaryPage(); // Salary
       case 3:
-        return const DashboardUI(); // Profile
-      case 4:
         return const AdminLeaveScreen(); // Prof
-      case 5:
+      case 4:
         return const AdminLeaveScreen();
       default:
         return const Text("`No Content`");
@@ -102,8 +100,6 @@ class _DashboardPageState extends State<DashboardScreen> {
                       const SizedBox(height: 10),
                       tabItem("Salary", Icons.verified, 2),
                       const SizedBox(height: 10),
-                      tabItem("Profile", Icons.person, 3),
-                      const SizedBox(height: 10),
                       tabItem("leave apporaval", Icons.person, 4),
                     ],
                   ),
@@ -135,8 +131,6 @@ class _DashboardPageState extends State<DashboardScreen> {
                     icon: Icon(Icons.add_card), label: "Leave Check"),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.verified), label: "Salary"),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.person), label: "Profile"),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.person), label: "leave approval"),
               ],

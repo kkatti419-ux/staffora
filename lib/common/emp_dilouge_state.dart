@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:staffora/core/utils/formatters.dart';
 import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
+import 'package:staffora/data/models/firebase_model/department/department_model.dart';
 import 'package:staffora/data/models/firebase_model/employee/employee.dart';
+
+/// 🔐 USER ROLE
+enum UserRole { admin, employee }
 
 class EmployeeDialog extends StatefulWidget {
   final bool isEdit;
   final String? employeeId;
   final EmployeeModelClass? initialEmployee;
+  final UserRole currentUserRole;
 
   const EmployeeDialog({
     super.key,
     required this.isEdit,
     required this.employeeId,
+    required this.currentUserRole,
     this.initialEmployee,
   });
 
@@ -22,7 +28,7 @@ class EmployeeDialog extends StatefulWidget {
 class _EmployeeDialogState extends State<EmployeeDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  // ================= CONTROLLERS =================
+  // ---------------- CONTROLLERS ----------------
   late TextEditingController _firstNameCtrl;
   late TextEditingController _lastNameCtrl;
   late TextEditingController _emailCtrl;
@@ -30,21 +36,27 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
   late TextEditingController _positionCtrl;
   late TextEditingController _dateCtrl;
 
-  // ================= STATE =================
+  // ---------------- STATE ----------------
+  DateTime _selectedDate = DateTime.now();
   String? _selectedDept;
-  late DateTime _selectedDate;
 
-  static const List<String> _departments = [
-    'Engineering',
-    'Marketing',
-    'Human Resources',
-    'Sales',
-  ];
+  List<DepartmentModel> _departments = [];
+  bool _loadingDepartments = true;
 
-  // ================= INIT =================
+  // ---------------- ROLE HELPERS ----------------
+  bool get isAdmin => widget.currentUserRole == UserRole.admin;
+
+  /// Admin + Employee → personal info
+  bool get canEditPersonal => true;
+
+  /// Only Admin → department & position
+  bool get canEditOrg => isAdmin;
+
+  // ---------------- INIT ----------------
   @override
   void initState() {
     super.initState();
+    _loadDepartments();
 
     final e = widget.initialEmployee;
 
@@ -61,16 +73,27 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
     _emailCtrl = TextEditingController(text: e?.email ?? '');
     _phoneCtrl = TextEditingController(text: e?.phone ?? '');
     _positionCtrl = TextEditingController(text: e?.role ?? '');
-
-    // 🔑 IMPORTANT: normalize department
-    _selectedDept = _departments.contains(e?.department) ? e!.department : null;
-
+    _selectedDept = e?.department;
     _selectedDate = e?.joined ?? DateTime.now();
     _dateCtrl =
         TextEditingController(text: Formatters.formatDate(_selectedDate));
   }
 
-  // ================= DISPOSE =================
+  Future<void> _loadDepartments() async {
+    try {
+      final list = await FirebaseEmployeeService().fetchAllDepartments();
+      if (!mounted) return;
+
+      setState(() {
+        _departments = list;
+        _loadingDepartments = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingDepartments = false);
+    }
+  }
+
   @override
   void dispose() {
     _firstNameCtrl.dispose();
@@ -82,31 +105,21 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
     super.dispose();
   }
 
-  // ================= UI HELPERS =================
-  InputDecoration _inputDecoration(String hint) {
+  // ---------------- UI HELPERS ----------------
+  InputDecoration _decoration(String hint) {
     return InputDecoration(
-      isDense: true,
       hintText: hint,
       filled: true,
       fillColor: const Color(0xFFF9FAFB),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF4C4CFF), width: 1.2),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 
-  // ================= DATE PICKER =================
+  // ---------------- DATE PICKER ----------------
   Future<void> _pickDate() async {
+    if (!canEditPersonal) return;
+
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -122,7 +135,7 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
     }
   }
 
-  // ================= SUBMIT =================
+  // ---------------- SUBMIT ----------------
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -144,37 +157,16 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
       initials: initials.toUpperCase(),
     );
 
-    await FirebaseEmployeeService().addEmployee(employee);
-    Navigator.of(context).pop(employee);
+    final service = FirebaseEmployeeService();
+
+    widget.isEdit
+        ? await service.updateEmployee(widget.employeeId!, employee)
+        : await service.addEmployee(employee);
+
+    if (mounted) Navigator.pop(context, employee);
   }
 
-  Future<void> _edit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final fullName =
-        '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'.trim();
-
-    final initials =
-        (_firstNameCtrl.text.isNotEmpty ? _firstNameCtrl.text[0] : '') +
-            (_lastNameCtrl.text.isNotEmpty ? _lastNameCtrl.text[0] : '');
-
-    final employee = EmployeeModelClass(
-      id: widget.employeeId,
-      name: fullName,
-      role: _positionCtrl.text.trim(),
-      department: _selectedDept ?? '',
-      email: _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-      joined: _selectedDate,
-      initials: initials.toUpperCase(),
-    );
-
-    await FirebaseEmployeeService()
-        .updateEmployee(widget.employeeId ?? "", employee);
-    Navigator.of(context).pop(employee);
-  }
-
-  // ================= BUILD =================
+  // ---------------- BUILD ----------------
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -184,103 +176,120 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ===== TITLE =====
+              // TITLE
               Row(
                 children: [
                   Text(
                     widget.isEdit ? 'Edit Employee' : 'Add Employee',
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                        fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
 
-              // ===== NAME =====
-              TextFormField(
-                controller: _firstNameCtrl,
-                decoration: _inputDecoration('First Name'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
+              _field(
+                'First Name',
+                TextFormField(
+                  controller: _firstNameCtrl,
+                  readOnly: !canEditPersonal,
+                  decoration: _decoration('First Name'),
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                ),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _lastNameCtrl,
-                decoration: _inputDecoration('Last Name'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
 
-              // ===== EMAIL =====
-              TextFormField(
-                controller: _emailCtrl,
-                decoration: _inputDecoration('Email'),
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
+              _field(
+                'Last Name',
+                TextFormField(
+                  controller: _lastNameCtrl,
+                  readOnly: !canEditPersonal,
+                  decoration: _decoration('Last Name'),
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                ),
               ),
-              const SizedBox(height: 12),
 
-              // ===== PHONE =====
-              TextFormField(
-                controller: _phoneCtrl,
-                decoration: _inputDecoration('Phone'),
-                keyboardType: TextInputType.phone,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
+              _field(
+                'Email',
+                TextFormField(
+                  controller: _emailCtrl,
+                  readOnly: !canEditPersonal,
+                  decoration: _decoration('Email'),
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                ),
               ),
-              const SizedBox(height: 12),
 
-              // ===== DEPARTMENT =====
-              DropdownButtonFormField<String>(
-                value:
-                    _departments.contains(_selectedDept) ? _selectedDept : null,
-                decoration: _inputDecoration('Select Department'),
-                items: _departments
-                    .map(
-                      (d) => DropdownMenuItem(
-                        value: d,
-                        child: Text(d),
-                      ),
+              _field(
+                'Phone',
+                TextFormField(
+                  controller: _phoneCtrl,
+                  readOnly: !canEditPersonal,
+                  decoration: _decoration('Phone'),
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                ),
+              ),
+
+              const RequiredLabel('Department'),
+              const SizedBox(height: 6),
+
+              _loadingDepartments
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedDept = v),
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-              ),
+                  : DropdownButtonFormField<String>(
+                      value: _departments.any((d) => d.name == _selectedDept)
+                          ? _selectedDept
+                          : null,
+                      decoration: _decoration('Select Department'),
+                      items: _departments
+                          .map(
+                            (d) => DropdownMenuItem(
+                              value: d.name,
+                              child: Text(
+                                d.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: canEditOrg
+                          ? (v) => setState(() => _selectedDept = v)
+                          : null,
+                      validator: (v) => v == null ? 'Required' : null,
+                    ),
+
               const SizedBox(height: 12),
 
-              // ===== POSITION =====
-              TextFormField(
-                controller: _positionCtrl,
-                decoration: _inputDecoration('Position'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
+              _field(
+                'Position',
+                TextFormField(
+                  controller: _positionCtrl,
+                  readOnly: !canEditOrg,
+                  decoration: _decoration('Position'),
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                ),
               ),
-              const SizedBox(height: 12),
 
-              // ===== DATE =====
-              TextFormField(
-                controller: _dateCtrl,
-                readOnly: true,
-                onTap: _pickDate,
-                decoration: _inputDecoration('Join Date'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
+              _field(
+                'Join Date',
+                TextFormField(
+                  controller: _dateCtrl,
+                  readOnly: true,
+                  onTap: canEditPersonal ? _pickDate : null,
+                  decoration: _decoration('Join Date'),
+                ),
               ),
+
               const SizedBox(height: 24),
 
-              // ===== ACTIONS =====
               Row(
                 children: [
                   Expanded(
@@ -292,15 +301,53 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: widget.isEdit ? _edit : _submit,
+                      onPressed: _submit,
                       child: Text(widget.isEdit ? 'Save' : 'Add'),
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _field(String label, Widget field) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RequiredLabel(label),
+        const SizedBox(height: 6),
+        field,
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+}
+
+/// ---------------- REQUIRED LABEL ----------------
+class RequiredLabel extends StatelessWidget {
+  final String text;
+  const RequiredLabel(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF111827),
+        ),
+        children: [
+          TextSpan(text: text),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
       ),
     );
   }

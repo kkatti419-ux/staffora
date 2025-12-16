@@ -40,9 +40,20 @@ class FirebaseEmployeeService {
   }
 
   // Fetch all employees
-  Future<List<Employee>> fetchAllEmployees() async {
+  // Future<List<Employee>> fetchAllEmployees() async {
+  //   final snapshot = await _db.get();
+  //   return snapshot.docs.map((doc) => Employee.fromJson(doc.data())).toList();
+  // }
+
+  Future<List<EmployeeModelClass>> fetchAllEmployees() async {
     final snapshot = await _db.get();
-    return snapshot.docs.map((doc) => Employee.fromJson(doc.data())).toList();
+
+    return snapshot.docs.map((doc) {
+      return EmployeeModelClass.fromMap(
+        doc.data(),
+        documentId: doc.id, // IMPORTANT
+      );
+    }).toList();
   }
 
   // Fetch employee by current userId
@@ -53,16 +64,16 @@ class FirebaseEmployeeService {
   }
 
   // Fetch employees based on role
-  Future<List<Employee>> fetchEmployeesBasedOnRole(String userId) async {
-    final current = await fetchEmployeeByUserId(userId);
-    if (current == null) return [];
+  // Future<List<Employee>> fetchEmployeesBasedOnRole(String userId) async {
+  //   final current = await fetchEmployeeByUserId(userId);
+  //   if (current == null) return [];
 
-    if (current.role == "admin") {
-      return fetchAllEmployees();
-    }
+  //   if (current.role == "admin") {
+  //     return fetchAllEmployees();
+  //   }
 
-    return [current]; // normal user
-  }
+  //   return [current]; // normal user
+  // }
   // Stream of employees by userId
 
   //------

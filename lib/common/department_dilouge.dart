@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
 import 'package:staffora/data/models/firebase_model/department/department_model.dart';
 import 'package:staffora/data/models/firebase_model/employee/employee.dart';
-import 'package:staffora/presentation/department/views/department_management.dart';
 
 class DepartmentDialog extends StatefulWidget {
   final DepartmentModel? department;
@@ -28,6 +26,9 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
   List<EmployeeModelClass> _admins = [];
   bool _isLoading = false;
 
+  List<EmployeeModelClass> _employees = [];
+  bool _loadingEmployees = true;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +38,27 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
     _selectedAdminId = widget.department?.adminId;
     _selectedAdminName = widget.department?.adminName;
     _loadAdmins();
+    _loadEmployees(); // 👈 NEW
+  }
+
+  Future<void> _loadEmployees() async {
+    try {
+      final list = await widget.firebaseEmployeeService.fetchAllEmployees();
+
+      setState(() {
+        _employees = list;
+        _loadingEmployees = false;
+
+        // 🔑 Reset if admin no longer exists
+        if (_selectedAdminId != null &&
+            !_employees.any((e) => e.id == _selectedAdminId)) {
+          _selectedAdminId = null;
+          _selectedAdminName = null;
+        }
+      });
+    } catch (e) {
+      _loadingEmployees = false;
+    }
   }
 
   Future<void> _loadAdmins() async {
@@ -230,28 +252,40 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  value: _selectedAdminId,
-                  decoration: _inputDecoration('Select admin (optional)'),
-                  hint: const Text('No admin assigned'),
-                  items: _admins.map((admin) {
-                    return DropdownMenuItem<String>(
-                      value: admin.id,
-                      child: Text('${admin.name} (${admin.email})'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedAdminId = value;
-                      if (value != null) {
-                        final admin = _admins.firstWhere((a) => a.id == value);
-                        _selectedAdminName = admin.name;
-                      } else {
-                        _selectedAdminName = null;
-                      }
-                    });
-                  },
-                ),
+
+                _loadingEmployees
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : DropdownButtonFormField<String>(
+                        value: _selectedAdminId,
+                        decoration: _inputDecoration('Select admin (optional)'),
+                        hint: const Text('No admin assigned'),
+                        items: _employees.map((emp) {
+                          return DropdownMenuItem<String>(
+                            value: emp.id,
+                            child: Text(
+                              emp.name.isNotEmpty
+                                  ? emp.name
+                                  : 'Unnamed Employee',
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedAdminId = value;
+
+                            if (value != null) {
+                              final emp =
+                                  _employees.firstWhere((e) => e.id == value);
+                              _selectedAdminName = emp.name;
+                            } else {
+                              _selectedAdminName = null;
+                            }
+                          });
+                        },
+                      ),
 
                 const SizedBox(height: 24),
 

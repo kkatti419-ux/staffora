@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:staffora/common/primary_button.dart';
 import 'package:staffora/core/utils/date_helper.dart';
 
-class DashboardUI extends StatelessWidget {
-  const DashboardUI({super.key});
+class LeaveDashboard extends StatelessWidget {
+  const LeaveDashboard({super.key});
 
   bool isWeb(BuildContext context) => MediaQuery.of(context).size.width > 900;
 
