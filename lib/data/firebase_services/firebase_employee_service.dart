@@ -72,10 +72,17 @@ class FirebaseEmployeeService {
     await _db.doc(userId).update(data);
   }
 
+  // Future<void> addEmployee(EmployeeModelClass data) async {
+  //   final doc = _firestoreService.collection("employees").doc();
+  //   data.id = doc.id; // auto-generate ID
+  //   await doc.set(data);
+  // }
+
   Future<void> addEmployee(EmployeeModelClass data) async {
     final doc = _firestoreService.collection("employees").doc();
     data.id = doc.id; // auto-generate ID
-    await doc.set(data);
+
+    await doc.set(data.toMap()); // <-- FIXED
   }
 
   // Delete employee

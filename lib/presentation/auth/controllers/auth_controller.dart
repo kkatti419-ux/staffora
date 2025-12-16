@@ -35,6 +35,7 @@ class AuthController extends GetxController {
 
       // Get current user from FirebaseAuth
       final user = _authService.currentUser;
+      AppLogger.debug("User signed in: ${user?.uid}");
 
       // Assign reactive user
       currentUser.value = user;

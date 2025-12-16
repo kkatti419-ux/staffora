@@ -19,26 +19,29 @@ class EmployeeScreen extends StatefulWidget {
 }
 
 class _EmployeeScreenState extends State<EmployeeScreen> {
-  final _firebaseEmployeeService = FirebaseEmployeeService();
+  final FirebaseEmployeeService _firebaseEmployeeService =
+      FirebaseEmployeeService();
 
   String? _currentUserRole;
   String? _currentUserId;
   bool _isLoading = true;
 
-  /// 🔁 Toggle state
+  /// Toggle to show assigned/unassigned (admin only)
   bool _showUnassigned = false;
 
+  // ================= INIT =================
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
   }
 
+  // ================= LOAD CURRENT USER =================
   Future<void> _loadCurrentUser() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        _isLoading = false;
+        setState(() => _isLoading = false);
         return;
       }
 
@@ -52,17 +55,26 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      AppLogger.error('Error loading user: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      AppLogger.error('Error loading current user: $e');
+      setState(() => _isLoading = false);
     }
   }
 
+  // ================= ROLE CHECK =================
   bool get _isAdmin => _currentUserRole?.toLowerCase() == 'admin';
 
-  // ================= ACTIONS =================
+  // ================= STREAM DECISION (KEY PART) =================
+  Stream<List<EmployeeModelClass>> _employeeStream() {
+    if (_isAdmin) {
+      // Admin → all employees
+      return _firebaseEmployeeService.employeeStream();
+    } else {
+      // User → only their own employee data
+      return _firebaseEmployeeService.employeeStreamByUserId(_currentUserId!);
+    }
+  }
 
+  // ================= ACTIONS =================
   Future<void> _openAddDialog() async {
     await showDialog(
       context: context,
@@ -70,6 +82,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
       builder: (_) => const EmployeeDialog(
         isEdit: false,
         employeeId: null,
+        initialEmployee: null,
       ),
     );
   }
@@ -87,7 +100,6 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
   }
 
   // ================= UI =================
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -100,180 +112,165 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1200),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isSmall = constraints.maxWidth < 700;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ================= HEADER =================
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // ================= HEADER =================
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Employees',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF111827),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _showUnassigned
-                                    ? 'Showing unassigned employees'
-                                    : 'Showing assigned employees',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Employees',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-
-                        /// 🔁 Toggle
-                        if (_isAdmin)
-                          Row(
-                            children: [
-                              Text(
-                                _showUnassigned
-                                    ? 'Show Unassigned Admin'
-                                    : 'Show Assigned Admin',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              Switch(
-                                value: _showUnassigned,
-                                activeColor: const Color(0xFF4C4CFF),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _showUnassigned = value;
-                                  });
-                                },
-                              ),
-                            ],
+                          const SizedBox(height: 4),
+                          Text(
+                            _showUnassigned
+                                ? 'Showing unassigned employees'
+                                : 'Showing assigned employees',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
                           ),
-
-                        const SizedBox(width: 12),
-
-                        if (_isAdmin)
-                          PrimaryButton(
-                            text: 'Add Employee',
-                            icon: Icons.add,
-                            onPressed: _openAddDialog,
-                          ),
-                        const SizedBox(width: 12),
-                        PrimaryButton(
-                          text: 'Manage Departments',
-                          icon: Icons.business,
-                          onPressed: () {
-                            if (context.mounted) {
-                              context.go('/department/management');
-                            }
-                          },
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
 
-                    const SizedBox(height: 24),
-                    StreamBuilder<List<EmployeeModelClass>>(
-                      stream: _isAdmin
-                          ? _firebaseEmployeeService.employeeStream()
-                          : _firebaseEmployeeService
-                              .employeeStreamByUserId(_currentUserId!),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                                ConnectionState.waiting &&
-                            !snapshot.hasData) {
-                          return const Center(
-                              child: CircularProgressIndicator());
+                    // Toggle only for admin
+                    if (_isAdmin)
+                      Row(
+                        children: [
+                          Text(
+                            _showUnassigned
+                                ? 'Show Unassigned'
+                                : 'Show Assigned',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          Switch(
+                            value: _showUnassigned,
+                            onChanged: (v) =>
+                                setState(() => _showUnassigned = v),
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(width: 12),
+
+                    // Add employee (non-admin only)
+                    if (_isAdmin)
+                      PrimaryButton(
+                        text: 'Add Employee',
+                        icon: Icons.add,
+                        onPressed: _openAddDialog,
+                      ),
+
+                    const SizedBox(width: 12),
+
+                    PrimaryButton(
+                      text: 'Manage Departments',
+                      icon: Icons.business,
+                      onPressed: () {
+                        if (context.mounted) {
+                          context.go('/department/management');
                         }
-
-                        final employees = snapshot.data ?? [];
-
-                        /// 🔑 FILTER LOGIC
-                        final filteredEmployees = employees.where((e) {
-                          final hasDept = e.department.isNotEmpty &&
-                              e.department != 'Unassigned';
-
-                          return _showUnassigned ? !hasDept : hasDept;
-                        }).toList();
-
-                        if (filteredEmployees.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 40),
-                              child: Text(
-                                _showUnassigned
-                                    ? 'No unassigned employees'
-                                    : 'No assigned employees',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-
-                        return Wrap(
-                          spacing: 24,
-                          runSpacing: 24,
-                          children: [
-                            for (final employee in filteredEmployees)
-                              SizedBox(
-                                width: isSmall
-                                    ? constraints.maxWidth
-                                    : (constraints.maxWidth - 48) / 3,
-                                child: AppInfoCard(
-                                  title: employee.name,
-                                  subtitle: employee.id,
-                                  avatarText: employee.initials,
-                                  infoItems: [
-                                    InfoItem(
-                                      icon: Icons.work_outline,
-                                      text: employee.role,
-                                    ),
-                                    InfoItem(
-                                      icon: Icons.email_outlined,
-                                      text: employee.email,
-                                    ),
-                                    InfoItem(
-                                      icon: Icons.phone_in_talk_outlined,
-                                      text: employee.phone,
-                                    ),
-                                    InfoItem(
-                                      icon: Icons.calendar_today_outlined,
-                                      text:
-                                          'Joined ${Formatters.formatDate(employee.joined)}',
-                                    ),
-                                  ],
-                                  chip: DepartmentChip(
-                                    text: employee.department.isNotEmpty
-                                        ? employee.department
-                                        : 'Unassigned',
-                                  ),
-                                  showActions: _isAdmin,
-                                  onEdit: () => _openEditDialog(employee),
-                                  onDelete: () async {
-                                    if (employee.id != null) {
-                                      await _firebaseEmployeeService
-                                          .deleteEmployee(employee.id!);
-                                    }
-                                  },
-                                ),
-                              ),
-                          ],
-                        );
                       },
                     ),
                   ],
-                );
-              },
+                ),
+
+                const SizedBox(height: 24),
+
+                // ================= EMPLOYEE LIST =================
+                StreamBuilder<List<EmployeeModelClass>>(
+                  stream: _employeeStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    final employees = snapshot.data ?? [];
+
+                    // Filter assigned / unassigned (admin only)
+                    final filteredEmployees = !_isAdmin
+                        ? employees
+                        : employees.where((e) {
+                            final hasDept = e.department.isNotEmpty &&
+                                e.department != 'Unassigned';
+                            return _showUnassigned ? !hasDept : hasDept;
+                          }).toList();
+
+                    if (filteredEmployees.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 40),
+                          child: Text(
+                            'No employees found',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return Wrap(
+                      spacing: 24,
+                      runSpacing: 24,
+                      children: filteredEmployees.map((employee) {
+                        return SizedBox(
+                          width: 350,
+                          child: AppInfoCard(
+                            title: employee.name,
+                            subtitle: employee.id,
+                            avatarText: employee.initials,
+                            infoItems: [
+                              InfoItem(
+                                icon: Icons.work_outline,
+                                text: employee.role,
+                              ),
+                              InfoItem(
+                                icon: Icons.email_outlined,
+                                text: employee.email,
+                              ),
+                              InfoItem(
+                                icon: Icons.phone_in_talk_outlined,
+                                text: employee.phone,
+                              ),
+                              InfoItem(
+                                icon: Icons.calendar_today_outlined,
+                                text:
+                                    'Joined ${Formatters.formatDate(employee.joined)}',
+                              ),
+                            ],
+                            chip: DepartmentChip(
+                              text: employee.department.isNotEmpty
+                                  ? employee.department
+                                  : 'Unassigned',
+                            ),
+                            showActions: _isAdmin,
+                            onEdit: () => _openEditDialog(employee),
+                            onDelete: () async {
+                              if (employee.id != null) {
+                                await _firebaseEmployeeService
+                                    .deleteEmployee(employee.id!);
+                              }
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ),
