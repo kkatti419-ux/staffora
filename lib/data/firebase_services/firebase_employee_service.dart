@@ -362,10 +362,7 @@ class FirebaseEmployeeService {
 
   /// Delete department (soft delete by setting isActive to false)
   Future<void> deleteDepartment(String id) async {
-    await _deptDb.doc(id).update({
-      'isActive': false,
-      'updatedAt': Timestamp.now(),
-    });
+    await _deptDb.doc(id).delete();
   }
 
   /// Hard delete department (permanent deletion)

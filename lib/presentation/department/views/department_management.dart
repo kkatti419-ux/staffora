@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:staffora/common/app_info_card.dart';
 import 'package:staffora/common/confirm_dilouge.dart';
@@ -200,16 +202,16 @@ class _DepartmentManagementScreenState
     showDialog(
       context: context,
       builder: (_) => ConfirmDialog(
-        title: 'Delete Department',
+        title: "Delete Department",
         message:
             'Are you sure you want to delete "${department.name}"?\nEmployees will be moved to "Unassigned".',
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
+        confirmText: "Delete",
+        cancelText: "Cancel",
         confirmColor: Colors.red,
         cancelColor: Colors.grey,
-        onCancel: () => Navigator.pop(context),
         onConfirm: () async {
-          Navigator.pop(context);
+          // Delay the delete until after Navigator finishes popping
+
           await _deleteDepartment(department.id, department.name);
         },
       ),
@@ -221,6 +223,9 @@ class _DepartmentManagementScreenState
     String departmentId,
     String departmentName,
   ) async {
+    log(departmentId);
+    log(departmentName);
+
     try {
       await _firebaseEmployeeService.deleteDepartment(departmentId);
       AppLogger.debug('Department deleted: $departmentName');
