@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:staffora/core/utils/formatters.dart';
 import 'package:staffora/data/firebase_services/firebase_employee_service.dart';
+import 'package:staffora/data/models/firebase_model/department/department_model.dart';
 import 'package:staffora/data/models/firebase_model/employee/employee.dart';
 
 class EmployeeDialog extends StatefulWidget {
@@ -34,17 +35,45 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
   String? _selectedDept;
   late DateTime _selectedDate;
 
-  static const List<String> _departments = [
-    'Engineering',
-    'Marketing',
-    'Human Resources',
-    'Sales',
-  ];
+  // static const List<String> _departments = [
+  //   'Engineering',
+  //   'Marketing',
+  //   'Human Resources',
+  //   'Sales',
+  // ];
+
+  List<DepartmentModel> _departments = [];
+  bool _loadingDepartments = true;
+
+  bool get _isReadOnly => widget.isEdit;
+  Future<void> _loadDepartments() async {
+    try {
+      final list = await FirebaseEmployeeService().fetchAllDepartments();
+
+      setState(() {
+        _departments = list;
+        _loadingDepartments = false;
+
+        // Preselect department on edit
+        if (widget.initialEmployee != null) {
+          _selectedDept = list
+                  .map((e) => e.name)
+                  .contains(widget.initialEmployee!.department)
+              ? widget.initialEmployee!.department
+              : null;
+        }
+      });
+    } catch (e) {
+      _loadingDepartments = false;
+    }
+  }
 
   // ================= INIT =================
   @override
   void initState() {
     super.initState();
+
+    _loadDepartments();
 
     final e = widget.initialEmployee;
 
@@ -62,15 +91,13 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
     _phoneCtrl = TextEditingController(text: e?.phone ?? '');
     _positionCtrl = TextEditingController(text: e?.role ?? '');
 
-    // 🔑 IMPORTANT: normalize department
-    _selectedDept = _departments.contains(e?.department) ? e!.department : null;
+    _selectedDept = _departments.contains(e?.department) ? e?.department : null;
 
     _selectedDate = e?.joined ?? DateTime.now();
     _dateCtrl =
         TextEditingController(text: Formatters.formatDate(_selectedDate));
   }
 
-  // ================= DISPOSE =================
   @override
   void dispose() {
     _firstNameCtrl.dispose();
@@ -85,22 +112,12 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
   // ================= UI HELPERS =================
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
-      isDense: true,
       hintText: hint,
       filled: true,
       fillColor: const Color(0xFFF9FAFB),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF4C4CFF), width: 1.2),
       ),
     );
   }
@@ -123,7 +140,7 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
   }
 
   // ================= SUBMIT =================
-  Future<void> _submit() async {
+  Future<void> _submitOrEdit() async {
     if (!_formKey.currentState!.validate()) return;
 
     final fullName =
@@ -144,34 +161,15 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
       initials: initials.toUpperCase(),
     );
 
-    await FirebaseEmployeeService().addEmployee(employee);
-    Navigator.of(context).pop(employee);
-  }
+    final service = FirebaseEmployeeService();
 
-  Future<void> _edit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (widget.isEdit) {
+      await service.updateEmployee(widget.employeeId!, employee);
+    } else {
+      await service.addEmployee(employee);
+    }
 
-    final fullName =
-        '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'.trim();
-
-    final initials =
-        (_firstNameCtrl.text.isNotEmpty ? _firstNameCtrl.text[0] : '') +
-            (_lastNameCtrl.text.isNotEmpty ? _lastNameCtrl.text[0] : '');
-
-    final employee = EmployeeModelClass(
-      id: widget.employeeId,
-      name: fullName,
-      role: _positionCtrl.text.trim(),
-      department: _selectedDept ?? '',
-      email: _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-      joined: _selectedDate,
-      initials: initials.toUpperCase(),
-    );
-
-    await FirebaseEmployeeService()
-        .updateEmployee(widget.employeeId ?? "", employee);
-    Navigator.of(context).pop(employee);
+    Navigator.pop(context, employee);
   }
 
   // ================= BUILD =================
@@ -184,10 +182,9 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ===== TITLE =====
+              /// TITLE
               Row(
                 children: [
                   Text(
@@ -206,81 +203,102 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
               ),
               const SizedBox(height: 16),
 
-              // ===== NAME =====
+              /// FIRST NAME
+              const RequiredLabel('First Name'),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: _firstNameCtrl,
+                readOnly: _isReadOnly,
                 decoration: _inputDecoration('First Name'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _lastNameCtrl,
-                decoration: _inputDecoration('Last Name'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-
-              // ===== EMAIL =====
-              TextFormField(
-                controller: _emailCtrl,
-                decoration: _inputDecoration('Email'),
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-
-              // ===== PHONE =====
-              TextFormField(
-                controller: _phoneCtrl,
-                decoration: _inputDecoration('Phone'),
-                keyboardType: TextInputType.phone,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-
-              // ===== DEPARTMENT =====
-              DropdownButtonFormField<String>(
-                value:
-                    _departments.contains(_selectedDept) ? _selectedDept : null,
-                decoration: _inputDecoration('Select Department'),
-                items: _departments
-                    .map(
-                      (d) => DropdownMenuItem(
-                        value: d,
-                        child: Text(d),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedDept = v),
                 validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
 
-              // ===== POSITION =====
+              /// LAST NAME
+              const RequiredLabel('Last Name'),
+              const SizedBox(height: 6),
               TextFormField(
-                controller: _positionCtrl,
-                decoration: _inputDecoration('Position'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
+                controller: _lastNameCtrl,
+                readOnly: _isReadOnly,
+                decoration: _inputDecoration('Last Name'),
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
 
-              // ===== DATE =====
+              /// EMAIL
+              const RequiredLabel('Email'),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _emailCtrl,
+                readOnly: _isReadOnly,
+                decoration: _inputDecoration('Email'),
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+
+              /// PHONE
+              const RequiredLabel('Phone'),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _phoneCtrl,
+                readOnly: _isReadOnly,
+                decoration: _inputDecoration('Phone'),
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+
+              /// DEPARTMENT (ONLY EDITABLE FIELD)
+              /// DEPARTMENT (ONLY EDITABLE FIELD)
+              const RequiredLabel('Department'),
+              const SizedBox(height: 6),
+
+              _loadingDepartments
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : DropdownButtonFormField<String>(
+                      value: _selectedDept,
+                      decoration: _inputDecoration('Select Department'),
+                      items: _departments
+                          .map(
+                            (d) => DropdownMenuItem(
+                              value: d.name,
+                              child: Text(d.name),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedDept = v),
+                      validator: (v) => v == null ? 'Required' : null,
+                    ),
+
+              const SizedBox(height: 12),
+
+              /// POSITION
+              const RequiredLabel('Position'),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _positionCtrl,
+                readOnly: _isReadOnly,
+                decoration: _inputDecoration('Position'),
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+
+              /// JOIN DATE
+              const RequiredLabel('Join Date'),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: _dateCtrl,
                 readOnly: true,
-                onTap: _pickDate,
+                onTap: _isReadOnly ? null : _pickDate,
                 decoration: _inputDecoration('Join Date'),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 24),
 
-              // ===== ACTIONS =====
+              /// ACTIONS
               Row(
                 children: [
                   Expanded(
@@ -292,7 +310,7 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: widget.isEdit ? _edit : _submit,
+                      onPressed: _submitOrEdit,
                       child: Text(widget.isEdit ? 'Save' : 'Add'),
                     ),
                   ),
@@ -301,6 +319,32 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// REQUIRED LABEL
+class RequiredLabel extends StatelessWidget {
+  final String text;
+  const RequiredLabel(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF111827),
+        ),
+        children: [
+          TextSpan(text: text),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
       ),
     );
   }
