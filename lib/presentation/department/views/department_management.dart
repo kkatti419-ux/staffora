@@ -592,3 +592,4 @@ class RequiredLabel extends StatelessWidget {
     );
   }
 }
+
