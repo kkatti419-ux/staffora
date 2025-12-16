@@ -14,9 +14,9 @@ class ReusableAuthCard extends StatelessWidget {
   final String primaryButtonText;
   final VoidCallback onPrimaryButtonTap;
 
-  final String footerText;
-  final String footerButtonText;
-  final String footerRoute;
+  final String? footerText;
+  final String? footerButtonText;
+  final String? footerRoute;
 
   const ReusableAuthCard({
     super.key,
@@ -26,9 +26,9 @@ class ReusableAuthCard extends StatelessWidget {
     required this.fields,
     required this.primaryButtonText,
     required this.onPrimaryButtonTap,
-    required this.footerText,
-    required this.footerButtonText,
-    required this.footerRoute,
+    this.footerText,
+    this.footerButtonText,
+    this.footerRoute,
     this.loading = false,
   });
 
@@ -87,7 +87,7 @@ class ReusableAuthCard extends StatelessWidget {
               Center(
                 child: RichText(
                   text: TextSpan(
-                    text: "$footerText ",
+                    text: footerText ?? "",
                     style: const TextStyle(fontSize: 14, color: Colors.black87),
                     children: [
                       TextSpan(
@@ -98,7 +98,7 @@ class ReusableAuthCard extends StatelessWidget {
                           color: Color(0xFF4C4CFF),
                         ),
                         recognizer: TapGestureRecognizer()
-                          ..onTap = () => context.go(footerRoute),
+                          ..onTap = () => context.go(footerRoute ?? '/'),
                       ),
                     ],
                   ),

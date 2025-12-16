@@ -14,7 +14,7 @@ class AppRouter {
     initialLocation: "/auth/login",
     routes: [
       GoRoute(
-        path: "/auth/register",
+        path: "/auth/create_account",
         builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
