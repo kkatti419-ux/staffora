@@ -29,11 +29,11 @@ class FirebaseConfig {
       AppLogger.debug('🔥 Firebase initialized successfully');
       return true;
     } catch (e, stackTrace) {
-      AppLogger.error(
-        '❌ Firebase initialization failed',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   '❌ Firebase initialization failed',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       return false;
     }
   }
@@ -43,19 +43,17 @@ class FirebaseConfig {
     try {
       await FirebaseAppCheck.instance.activate(
         // For Android
-        androidProvider: kDebugMode
-            ? AndroidProvider.debug
-            : AndroidProvider.playIntegrity,
+        androidProvider:
+            kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
         // For iOS
-        appleProvider: kDebugMode
-            ? AppleProvider.debug
-            : AppleProvider.deviceCheck,
+        appleProvider:
+            kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
         // For Web
         webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
       );
       AppLogger.debug('✅ Firebase App Check activated');
     } catch (e) {
-      AppLogger.error('⚠️ Firebase App Check activation failed: $e');
+      // AppLogger.error('⚠️ Firebase App Check activation failed: $e');
     }
   }
 

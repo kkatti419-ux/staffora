@@ -16,11 +16,11 @@ class FirestoreService {
     try {
       return await _firestore.collection(collection).doc(docId).get();
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to get document from $collection/$docId',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Failed to get document from $collection/$docId',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       rethrow;
     }
   }
@@ -39,11 +39,11 @@ class FirestoreService {
           .set(data, SetOptions(merge: merge));
       AppLogger.debug('Document set successfully in $collection/$docId');
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to set document in $collection/$docId',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Failed to set document in $collection/$docId',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       rethrow;
     }
   }
@@ -58,11 +58,11 @@ class FirestoreService {
       await _firestore.collection(collection).doc(docId).update(data);
       AppLogger.debug('Document updated successfully in $collection/$docId');
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to update document in $collection/$docId',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Failed to update document in $collection/$docId',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       rethrow;
     }
   }
@@ -73,11 +73,11 @@ class FirestoreService {
       await _firestore.collection(collection).doc(docId).delete();
       AppLogger.debug('Document deleted successfully from $collection/$docId');
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to delete document from $collection/$docId',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Failed to delete document from $collection/$docId',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       rethrow;
     }
   }
@@ -90,17 +90,18 @@ class FirestoreService {
     int? limit,
   }) async {
     try {
-      Query query = _firestore.collection(collection).where(field, isEqualTo: value);
+      Query query =
+          _firestore.collection(collection).where(field, isEqualTo: value);
       if (limit != null) {
         query = query.limit(limit);
       }
       return await query.get();
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to query documents from $collection',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Failed to query documents from $collection',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       rethrow;
     }
   }
@@ -110,11 +111,6 @@ class FirestoreService {
     try {
       return await _firestore.collection(collection).get();
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to get all documents from $collection',
-        error: e,
-        stackTrace: stackTrace,
-      );
       rethrow;
     }
   }

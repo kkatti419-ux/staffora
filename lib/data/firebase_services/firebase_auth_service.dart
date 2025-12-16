@@ -85,21 +85,21 @@ class FirebaseAuthService {
 
     // Firebase errors
     on FirebaseAuthException catch (e) {
-      AppLogger.error(
-        'Firebase Auth Exception during signup',
-        error: e,
-        stackTrace: StackTrace.current,
-      );
+      // AppLogger.error(
+      //   'Firebase Auth Exception during signup',
+      //   error: e,
+      //   stackTrace: StackTrace.current,
+      // );
       return false;
     }
 
     // Other errors
     catch (e, stackTrace) {
-      AppLogger.error(
-        'Signup error',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Signup error',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       return false;
     }
   }
@@ -124,17 +124,17 @@ class FirebaseAuthService {
 
     // Firebase Auth Errors (wrong password, no user, etc.)
     on FirebaseAuthException catch (e) {
-      AppLogger.error(
-        'Firebase Auth Exception during signin',
-        error: e,
-        stackTrace: StackTrace.current,
-      );
+      // AppLogger.error(
+      //   'Firebase Auth Exception during signin',
+      //   error: e,
+      //   stackTrace: StackTrace.current,
+      // );
       return false; // FAIL ❌
     }
 
     // Any other error
     catch (e, stackTrace) {
-      AppLogger.error('Signin error', error: e, stackTrace: stackTrace);
+      // AppLogger.error('Signin error', error: e, stackTrace: stackTrace);
       return false; // FAIL ❌
     }
   }
@@ -146,7 +146,7 @@ class FirebaseAuthService {
       AppLogger.debug('Password reset email sent to: $email');
       return "success";
     } on FirebaseAuthException catch (e) {
-      AppLogger.error('Password reset error', error: e);
+      // AppLogger.error('Password reset error', error: e);
       if (e.code == 'user-not-found') {
         return "No user found with this email";
       } else if (e.code == 'invalid-email') {
@@ -155,7 +155,7 @@ class FirebaseAuthService {
         return e.message ?? "An error occurred";
       }
     } catch (e) {
-      AppLogger.error('Password reset error', error: e);
+      // AppLogger.error('Password reset error', error: e);
       return "Something went wrong, try again";
     }
   }
@@ -173,7 +173,7 @@ class FirebaseAuthService {
       await user.updatePassword(newPassword);
       AppLogger.debug('Password updated successfully');
     } on FirebaseAuthException catch (e) {
-      AppLogger.error('Update password error', error: e);
+      // AppLogger.error('Update password error', error: e);
       rethrow;
     }
   }
@@ -184,7 +184,7 @@ class FirebaseAuthService {
       await _auth.signOut();
       AppLogger.debug('User signed out successfully');
     } catch (e, stackTrace) {
-      AppLogger.error('Sign out error', error: e, stackTrace: stackTrace);
+      // AppLogger.error('Sign out error', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -207,7 +207,7 @@ class FirebaseAuthService {
       await user.delete();
       AppLogger.debug('User account deleted successfully');
     } on FirebaseAuthException catch (e) {
-      AppLogger.error('Delete account error', error: e);
+      // AppLogger.error('Delete account error', error: e);
       rethrow;
     }
   }

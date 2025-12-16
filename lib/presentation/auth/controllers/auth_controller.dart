@@ -29,7 +29,6 @@ class AuthController extends GetxController {
       final success = await _authService.signin(loginModel);
 
       if (!success) {
-        AppLogger.error("Sign-in failed");
         return null;
       }
 
@@ -48,7 +47,6 @@ class AuthController extends GetxController {
 
       return user;
     } catch (e, stackTrace) {
-      AppLogger.error("Sign-in error", error: e, stackTrace: stackTrace);
       return null;
     }
   }
@@ -62,9 +60,7 @@ class AuthController extends GetxController {
       storage.remove("uid");
       currentUser.value = null;
       AppLogger.debug("User signed out successfully");
-    } catch (e, stackTrace) {
-      AppLogger.error("Sign-out error", error: e, stackTrace: stackTrace);
-    }
+    } catch (e, stackTrace) {}
   }
 
   // ---------------------------
@@ -81,7 +77,6 @@ class AuthController extends GetxController {
       final success = await _authService.signup(registerModel);
 
       if (!success) {
-        AppLogger.error("Sign-up failed");
         return null;
       }
 
@@ -99,7 +94,6 @@ class AuthController extends GetxController {
 
       return user;
     } catch (e, stackTrace) {
-      AppLogger.error("Sign-up error", error: e, stackTrace: stackTrace);
       return null;
     }
   }

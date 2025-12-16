@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context.go('/profile/user');
       }
     } catch (e, stackTrace) {
-      AppLogger.error("Login failed", error: e, stackTrace: stackTrace);
+      // AppLogger.error("Login failed", error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Login failed: ${e.toString()}")),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:staffora/common/primary_button.dart';
-import 'package:staffora/common/submit_or_cancel.dart';
 
 class ConfirmDialog extends StatelessWidget {
   final String title;

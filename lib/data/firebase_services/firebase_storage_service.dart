@@ -17,11 +17,6 @@ class FirebaseStorageService {
       AppLogger.debug('Profile image uploaded successfully for user: $userId');
       return downloadUrl;
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to upload profile image',
-        error: e,
-        stackTrace: stackTrace,
-      );
       rethrow;
     }
   }
@@ -38,11 +33,6 @@ class FirebaseStorageService {
       AppLogger.debug('File uploaded successfully to: $path');
       return downloadUrl;
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to upload file to $path',
-        error: e,
-        stackTrace: stackTrace,
-      );
       rethrow;
     }
   }
@@ -54,11 +44,6 @@ class FirebaseStorageService {
       await ref.delete();
       AppLogger.debug('File deleted successfully from: $path');
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to delete file from $path',
-        error: e,
-        stackTrace: stackTrace,
-      );
       rethrow;
     }
   }

@@ -55,7 +55,6 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      AppLogger.error('Error loading current user: $e');
       setState(() => _isLoading = false);
     }
   }

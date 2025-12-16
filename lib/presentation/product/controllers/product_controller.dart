@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:staffora/core/utils/logger.dart';
 import 'package:staffora/core/utils/snackbar_service.dart';
 import 'package:staffora/data/models/api_models/product/posts_model.dart';
 import 'package:staffora/domain/usecases/create_product_usecase.dart';
@@ -43,7 +42,7 @@ class ProductController extends GetxController {
         SnackbarService.showError(context, "Unable to create product");
       }
     } catch (e) {
-      AppLogger.error(e.toString());
+      // AppLogger.error(e.toString());
       SnackbarService.showError(context, "Error: ${e.toString()}");
     } finally {
       isLoading.value = false;

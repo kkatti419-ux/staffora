@@ -8,7 +8,7 @@ import 'package:staffora/core/utils/logger.dart';
 /// Handles Google authentication for web, Android, and iOS
 class GoogleSignInService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   // Web client ID for Google Sign-In
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb
@@ -31,11 +31,6 @@ class GoogleSignInService {
         return await _signInWithGoogleMobile();
       }
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Google sign-in error',
-        error: e,
-        stackTrace: stackTrace,
-      );
       rethrow;
     }
   }
@@ -55,16 +50,17 @@ class GoogleSignInService {
             await _auth.signInWithPopup(googleProvider);
 
         final User? user = userCredential.user;
-        
+
         if (user != null) {
           await _saveUserToFirestore(user);
         }
 
-        AppLogger.debug('Web Google sign-in successful (popup): ${user?.email}');
+        AppLogger.debug(
+            'Web Google sign-in successful (popup): ${user?.email}');
         return user;
       } on FirebaseAuthException catch (e) {
         // If popup was blocked or closed, use redirect instead
-        if (e.code == 'popup-blocked' || 
+        if (e.code == 'popup-blocked' ||
             e.code == 'popup-closed-by-user' ||
             e.code == 'cancelled-popup-request') {
           AppLogger.debug('Popup failed, using redirect flow');
@@ -75,21 +71,20 @@ class GoogleSignInService {
         rethrow;
       }
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Web Google sign-in error',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Web Google sign-in error',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       rethrow;
     }
   }
-
 
   /// Mobile-specific Google Sign-In (Android & iOS)
   Future<User?> _signInWithGoogleMobile() async {
     // Trigger the Google Sign-In flow
     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-    
+
     if (googleUser == null) {
       // User cancelled the sign-in
       AppLogger.debug('Google sign-in cancelled by user');
@@ -111,7 +106,7 @@ class GoogleSignInService {
         await _auth.signInWithCredential(credential);
 
     final User? user = userCredential.user;
-    
+
     if (user != null) {
       await _saveUserToFirestore(user);
     }
@@ -123,7 +118,8 @@ class GoogleSignInService {
   /// Save user data to Firestore (if new user)
   Future<void> _saveUserToFirestore(User user) async {
     try {
-      final userDoc = FirebaseFirestore.instance.collection('profiles').doc(user.uid);
+      final userDoc =
+          FirebaseFirestore.instance.collection('profiles').doc(user.uid);
       final docSnapshot = await userDoc.get();
 
       if (!docSnapshot.exists) {
@@ -139,11 +135,11 @@ class GoogleSignInService {
         AppLogger.debug('New Google user profile created in Firestore');
       }
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to save Google user to Firestore',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Failed to save Google user to Firestore',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
     }
   }
 
@@ -156,11 +152,11 @@ class GoogleSignInService {
       await _auth.signOut();
       AppLogger.debug('Google sign-out successful');
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Google sign-out error',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Google sign-out error',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
       rethrow;
     }
   }
@@ -170,21 +166,21 @@ class GoogleSignInService {
     if (!kIsWeb) return null;
 
     try {
-      final UserCredential? userCredential = 
-          await _auth.getRedirectResult();
-      
+      final UserCredential? userCredential = await _auth.getRedirectResult();
+
       if (userCredential != null && userCredential.user != null) {
         final user = userCredential.user!;
         await _saveUserToFirestore(user);
-        AppLogger.debug('Web Google sign-in successful (redirect): ${user.email}');
+        AppLogger.debug(
+            'Web Google sign-in successful (redirect): ${user.email}');
         return user;
       }
     } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to get redirect result',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      // AppLogger.error(
+      //   'Failed to get redirect result',
+      //   error: e,
+      //   stackTrace: stackTrace,
+      // );
     }
     return null;
   }

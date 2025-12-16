@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DepartmentModel {
-  final String? id; // Firestore document ID
+  final String id; // Firestore document ID
   final String name;
   final String? description;
   final String? adminId; // Employee ID of the department admin
@@ -11,7 +11,7 @@ class DepartmentModel {
   final bool isActive;
 
   DepartmentModel({
-    this.id,
+    required this.id,
     required this.name,
     this.description,
     this.adminId,
@@ -87,4 +87,3 @@ class DepartmentModel {
     );
   }
 }
-
