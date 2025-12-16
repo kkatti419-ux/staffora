@@ -148,6 +148,32 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
     Navigator.of(context).pop(employee);
   }
 
+  Future<void> _edit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final fullName =
+        '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'.trim();
+
+    final initials =
+        (_firstNameCtrl.text.isNotEmpty ? _firstNameCtrl.text[0] : '') +
+            (_lastNameCtrl.text.isNotEmpty ? _lastNameCtrl.text[0] : '');
+
+    final employee = EmployeeModelClass(
+      id: widget.employeeId,
+      name: fullName,
+      role: _positionCtrl.text.trim(),
+      department: _selectedDept ?? '',
+      email: _emailCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      joined: _selectedDate,
+      initials: initials.toUpperCase(),
+    );
+
+    await FirebaseEmployeeService()
+        .updateEmployee(widget.employeeId ?? "", employee);
+    Navigator.of(context).pop(employee);
+  }
+
   // ================= BUILD =================
   @override
   Widget build(BuildContext context) {
@@ -266,7 +292,7 @@ class _EmployeeDialogState extends State<EmployeeDialog> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _submit,
+                      onPressed: widget.isEdit ? _edit : _submit,
                       child: Text(widget.isEdit ? 'Save' : 'Add'),
                     ),
                   ),
